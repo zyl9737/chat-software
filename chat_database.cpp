@@ -11,14 +11,14 @@ ChatDataBase::~ChatDataBase()
 
 void ChatDataBase::my_database_connect(const char* name)
 {
-	mysql = mysql_init(NULL); // mysql³õÊ¼»¯º¯Êı
-	mysql = mysql_real_connect(mysql, "localhost", "root", "root", name, 0, NULL, 0); // Á¬½ÓÕæÕıµÄmysqlÊı¾İ¿â£¬Ö÷»úip£¬ÓÃ»§Ãû£¬ÃÜÂë£¬name´ıÁ¬½ÓÊı¾İ¿âÃû×Ö
+	mysql = mysql_init(NULL); // mysqlåˆå§‹åŒ–å‡½æ•°
+	mysql = mysql_real_connect(mysql, "localhost", "root", "root", name, 0, NULL, 0); // è¿æ¥çœŸæ­£çš„mysqlæ•°æ®åº“ï¼Œä¸»æœºipï¼Œç”¨æˆ·åï¼Œå¯†ç ï¼Œnameå¾…è¿æ¥æ•°æ®åº“åå­—
 	if (NULL == mysql)
 	{
-		cout << "connect database failure£¡" << endl;
+		cout << "connect database failureï¼" << endl;
 	}
 
-	if (mysql_query(mysql, "set names utf8;") != 0) // ÉèÖÃÊı¾İ¿â±àÂë¸ñÊ½Îªutf8£¬·ÀÖ¹ÖĞÎÄÂÒÂë
+	if (mysql_query(mysql, "set names utf8;") != 0) // è®¾ç½®æ•°æ®åº“ç¼–ç æ ¼å¼ä¸ºutf8ï¼Œé˜²æ­¢ä¸­æ–‡ä¹±ç 
 	{
 		cout << "mysql_query error" << endl;
 	}
@@ -41,35 +41,35 @@ int ChatDataBase::my_database_get_group_name(string* s)
 	MYSQL_ROW row;
 	while (row = mysql_fetch_row(res))
 	{
-		s[count] += row[0];   // s×Ö·û´®Êı×éÖĞ±£´æ¸ÃÊı¾İ¿âÖĞÃ¿¸öÈºÁÄµÄÃû³Æ
+		s[count] += row[0];   // så­—ç¬¦ä¸²æ•°ç»„ä¸­ä¿å­˜è¯¥æ•°æ®åº“ä¸­æ¯ä¸ªç¾¤èŠçš„åç§°
 		count++;
 	}
 
-	return count;  // ·µ»ØÊı¾İ¿âÈºÁÄµÄ¸öÊı
+	return count;  // è¿”å›æ•°æ®åº“ç¾¤èŠçš„ä¸ªæ•°
 }
 
-void ChatDataBase::my_database_get_group_member(string name, string& s)  //»ñÈ¡Ä³¸önameÈºÁÄµÄËùÓĞ³ÉÔ±£¬·ÅÔÚsÖĞ
+void ChatDataBase::my_database_get_group_member(string name, string& s)  //è·å–æŸä¸ªnameç¾¤èŠçš„æ‰€æœ‰æˆå‘˜ï¼Œæ”¾åœ¨sä¸­
 {
 	char sql[1024] = { 0 };
-	sprintf(sql, "select member from %s;", name.c_str()); // ¶¨ÒåÒ»Ìõmysql²éÑ¯Óï¾ä=sql£¬ÆäÖĞ%ºóÖ»ÄÜÎªchar£¬c_str½«ÈºÁÄname×Ö·û´®×ª»»Îªchar
+	sprintf(sql, "select member from %s;", name.c_str()); // å®šä¹‰ä¸€æ¡mysqlæŸ¥è¯¢è¯­å¥=sqlï¼Œå…¶ä¸­%ååªèƒ½ä¸ºcharï¼Œc_strå°†ç¾¤èŠnameå­—ç¬¦ä¸²è½¬æ¢ä¸ºchar
 
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;
 	}
 
-	MYSQL_RES* res = mysql_store_result(mysql); // ½«Ö´ĞĞ½á¹û´æ´¢µ½resÖĞ
+	MYSQL_RES* res = mysql_store_result(mysql); // å°†æ‰§è¡Œç»“æœå­˜å‚¨åˆ°resä¸­
 	if (NULL == res)
 	{
 		cout << "mysql_store_result error" << endl;
 	}
 
-	MYSQL_ROW row = mysql_fetch_row(res);// °´ĞĞ´æ´¢res
+	MYSQL_ROW row = mysql_fetch_row(res);// æŒ‰è¡Œå­˜å‚¨res
 	if (NULL == row[0])
 	{
 		return;
 	}
-	s += row[0]; // sÈº³ÉÔ±×Ö·û´®¡ª¡ª¡ª¡ª¡ª¡ª  Ğ¡Ã÷|Ğ¡Àî|Ğ¡ÕÅ
+	s += row[0]; // sç¾¤æˆå‘˜å­—ç¬¦ä¸²â€”â€”â€”â€”â€”â€”  å°æ˜|å°æ|å°å¼ 
 }
 
 void ChatDataBase::my_database_disconnect()
@@ -77,11 +77,11 @@ void ChatDataBase::my_database_disconnect()
 	mysql_close(mysql);
 }
 
-bool ChatDataBase::my_database_user_exist(string name) // ÓÃ»§×¢²áÊ±£¬ĞèÒª¼ì²é¸ÃÓÃ»§ÊÇ·ñÒÑ¾­ÔÚuserÊı¾İ¿âÖĞ£¬userÊı¾İ¿âÒÑ¾­ÔÚserver.cppÖĞ×¢²áÓÃ»§£¬Ìí¼ÓºÃÓÑµÈº¯ÊıÖĞ´ò¿ª
-{	/*userÊı¾İ¿âÖĞ£¬ÎªÒ»¸öÓÃ»§´´½¨Ò»ÕÅ±ítable£¬±íÃû¾ÍÊÇÓÃ»§Ãû£¬±íÖĞµÄĞÅÏ¢°üÀ¨ÃÜÂëpassword£¬ºÃÓÑfriend£¨×Ö·û´®£©£¬Ëù¼ÓµÄÈºÁÄgroup*/
+bool ChatDataBase::my_database_user_exist(string name) // ç”¨æˆ·æ³¨å†Œæ—¶ï¼Œéœ€è¦æ£€æŸ¥è¯¥ç”¨æˆ·æ˜¯å¦å·²ç»åœ¨useræ•°æ®åº“ä¸­ï¼Œuseræ•°æ®åº“å·²ç»åœ¨server.cppä¸­æ³¨å†Œç”¨æˆ·ï¼Œæ·»åŠ å¥½å‹ç­‰å‡½æ•°ä¸­æ‰“å¼€
+{	/*useræ•°æ®åº“ä¸­ï¼Œä¸ºä¸€ä¸ªç”¨æˆ·åˆ›å»ºä¸€å¼ è¡¨tableï¼Œè¡¨åå°±æ˜¯ç”¨æˆ·åï¼Œè¡¨ä¸­çš„ä¿¡æ¯åŒ…æ‹¬å¯†ç passwordï¼Œå¥½å‹friendï¼ˆå­—ç¬¦ä¸²ï¼‰ï¼Œæ‰€åŠ çš„ç¾¤èŠgroup*/
 
 	char sql[128] = { 0 };
-	sprintf(sql, "show tables like '%s';", name.c_str());//²éÕÒµ±Ç°Êı¾İ¿âÖĞÊÇ·ñ´æÔÚ±íÃû=´ı×¢²áµÄÓÃ»§Ãûname
+	sprintf(sql, "show tables like '%s';", name.c_str());//æŸ¥æ‰¾å½“å‰æ•°æ®åº“ä¸­æ˜¯å¦å­˜åœ¨è¡¨å=å¾…æ³¨å†Œçš„ç”¨æˆ·åname
 
 	if (mysql_query(mysql, sql) != 0)
 	{
@@ -91,11 +91,11 @@ bool ChatDataBase::my_database_user_exist(string name) // ÓÃ»§×¢²áÊ±£¬ĞèÒª¼ì²é¸Ã
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
 
-	if (NULL == row)      //Èç¹ûÃ»ÓĞ±íÃûµÈÓÚnameµÄ±í£¬Ôò¸ÃÓÃ»§²»´æÔÚ
+	if (NULL == row)      //å¦‚æœæ²¡æœ‰è¡¨åç­‰äºnameçš„è¡¨ï¼Œåˆ™è¯¥ç”¨æˆ·ä¸å­˜åœ¨
 	{
 		return false;
 	}
-	else                  //ÓÃ»§´æÔÚ
+	else                  //ç”¨æˆ·å­˜åœ¨
 	{
 		return true;
 	}
@@ -103,7 +103,7 @@ bool ChatDataBase::my_database_user_exist(string name) // ÓÃ»§×¢²áÊ±£¬ĞèÒª¼ì²é¸Ã
 
 void ChatDataBase::my_database_user_password(string name, string password)
 {
-	//¶¨ÒåÒ»ÌõSQLÓï¾ä£¬ÔÚµ±Ç°Êı¾İ¿âuserÖĞ´´½¨Ò»ÕÅ±íÃûÎªÓÃ»§ÃûÎªnameµÄ±í£¬±íÖĞ´æ´¢password£¬friend,chatgroupÈıÌõĞÅÏ¢
+	//å®šä¹‰ä¸€æ¡SQLè¯­å¥ï¼Œåœ¨å½“å‰æ•°æ®åº“userä¸­åˆ›å»ºä¸€å¼ è¡¨åä¸ºç”¨æˆ·åä¸ºnameçš„è¡¨ï¼Œè¡¨ä¸­å­˜å‚¨passwordï¼Œfriend,chatgroupä¸‰æ¡ä¿¡æ¯
 	char sql[128] = { 0 };
 	sprintf(sql, "create table %s (password varchar(16), friend varchar(4096), chatgroup varchar(4096)) character set utf8;", name.c_str());
 	if (mysql_query(mysql, sql) != 0)
@@ -111,9 +111,9 @@ void ChatDataBase::my_database_user_password(string name, string password)
 		cout << "create table error" << endl;
 	}
 
-	memset(sql, 0, sizeof(sql));//Çå¿ÕsqlÓï¾ä
-	//¸ÃsplÓï¾äÊÇ½«password¼ÓÈëµ½±íÃûÎªnameµÄ±íÖĞ
-	sprintf(sql, "insert into %s (password) values ('%s');",// ×¢Òâ£¬¸Ãname±í¸Õ¸ÕÒÑ¾­´´½¨£¬ÏÖÔÚ¶ÔËü²Ù×÷£¬²»ÓÃ½«±íÃû¼ÓÒıºÅ,¶ø´ı²åÈëµÄĞÅÏ¢ÃÜÂë£¬ĞèÒª¼ÓÒıºÅ£¬ÓÉÓÚË«ÒıºÅÖ®¼ä²»ÄÜÔÙÇ¶Ì×Ë«ÒıºÅ£¬ËùÒÔpassword¼Óµ¥ÒıºÅ
+	memset(sql, 0, sizeof(sql));//æ¸…ç©ºsqlè¯­å¥
+	//è¯¥splè¯­å¥æ˜¯å°†passwordåŠ å…¥åˆ°è¡¨åä¸ºnameçš„è¡¨ä¸­
+	sprintf(sql, "insert into %s (password) values ('%s');",// æ³¨æ„ï¼Œè¯¥nameè¡¨åˆšåˆšå·²ç»åˆ›å»ºï¼Œç°åœ¨å¯¹å®ƒæ“ä½œï¼Œä¸ç”¨å°†è¡¨ååŠ å¼•å·,è€Œå¾…æ’å…¥çš„ä¿¡æ¯å¯†ç ï¼Œéœ€è¦åŠ å¼•å·ï¼Œç”±äºåŒå¼•å·ä¹‹é—´ä¸èƒ½å†åµŒå¥—åŒå¼•å·ï¼Œæ‰€ä»¥passwordåŠ å•å¼•å·
 		name.c_str(), password.c_str());
 	if (mysql_query(mysql, sql) != 0)
 	{
@@ -172,10 +172,10 @@ void ChatDataBase::my_database_get_friend_group(string name, string& f, string& 
 	}
 }
 
-bool ChatDataBase::my_database_is_friend(string n1, string n2) // ÅĞ¶ÏÓÃ»§2ÊÇ·ñÓÃ»§1µÄºÃÓÑ
+bool ChatDataBase::my_database_is_friend(string n1, string n2) // åˆ¤æ–­ç”¨æˆ·2æ˜¯å¦ç”¨æˆ·1çš„å¥½å‹
 {
 	char sql[128] = { 0 };
-	sprintf(sql, "select friend from %s;", n1.c_str()); // Ê¹ÓÃn1±í£¬²én1µÄfriend×Ö·û´®ÖĞÊÇ·ñÓĞn2£¬·´Ö®Ò²¿É
+	sprintf(sql, "select friend from %s;", n1.c_str()); // ä½¿ç”¨n1è¡¨ï¼ŒæŸ¥n1çš„friendå­—ç¬¦ä¸²ä¸­æ˜¯å¦æœ‰n2ï¼Œåä¹‹ä¹Ÿå¯
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;
@@ -183,7 +183,7 @@ bool ChatDataBase::my_database_is_friend(string n1, string n2) // ÅĞ¶ÏÓÃ»§2ÊÇ·ñÓ
 
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
-	if (NULL == row[0]) // n1ºÃÓÑÎª¿ÕNULL
+	if (NULL == row[0]) // n1å¥½å‹ä¸ºç©ºNULL
 	{
 		return false;
 	}
@@ -215,7 +215,7 @@ bool ChatDataBase::my_database_is_friend(string n1, string n2) // ÅĞ¶ÏÓÃ»§2ÊÇ·ñÓ
 	return false;
 }
 
-void ChatDataBase::my_database_add_new_friend(string n1, string n2) // ½«ÓÃ»§n2¼ÓÈëµ½ÓÃ»§n1±íµÄfriend×Ö·û´®ÖĞ
+void ChatDataBase::my_database_add_new_friend(string n1, string n2) // å°†ç”¨æˆ·n2åŠ å…¥åˆ°ç”¨æˆ·n1è¡¨çš„friendå­—ç¬¦ä¸²ä¸­
 {
 	char sql[1024] = { 0 };
 	sprintf(sql, "select friend from %s;", n1.c_str());
@@ -226,26 +226,26 @@ void ChatDataBase::my_database_add_new_friend(string n1, string n2) // ½«ÓÃ»§n2¼
 	string friend_list;
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
-	if (NULL == row[0])    //Ô­À´Ã»ÓĞºÃÓÑ
+	if (NULL == row[0])    //åŸæ¥æ²¡æœ‰å¥½å‹
 	{
 		friend_list.append(n2);
 	}
 	else
 	{
 		friend_list.append(row[0]);
-		friend_list += "|"; // ÓëÔ­À´ºÃÓÑÖ®¼äÏÈ¼ÓÉÏ'|'
+		friend_list += "|"; // ä¸åŸæ¥å¥½å‹ä¹‹é—´å…ˆåŠ ä¸Š'|'
 		friend_list += n2;
 	}
 
 	memset(sql, 0, sizeof(sql));
-	sprintf(sql, "update %s set friend = '%s';", n1.c_str(), friend_list.c_str()); // ¸üĞÂn1±íµÄfriendºÃÓÑ
+	sprintf(sql, "update %s set friend = '%s';", n1.c_str(), friend_list.c_str()); // æ›´æ–°n1è¡¨çš„friendå¥½å‹
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;
 	}
 }
 
-// ´´½¨¡¢Ìí¼ÓÈºÁÄÊ±£¬ÌáÇ°ÅĞ¶Ï¸ÃÈºÁÄÊÇ·ñ´æÔÚ
+// åˆ›å»ºã€æ·»åŠ ç¾¤èŠæ—¶ï¼Œæå‰åˆ¤æ–­è¯¥ç¾¤èŠæ˜¯å¦å­˜åœ¨
 bool ChatDataBase::my_database_group_exist(string group_name) 
 {
 	char sql[128] = { 0 };
@@ -257,17 +257,17 @@ bool ChatDataBase::my_database_group_exist(string group_name)
 
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
-	if (NULL == row)      //Èº²»´æÔÚ
+	if (NULL == row)      //ç¾¤ä¸å­˜åœ¨
 	{
 		return false;
 	}
-	else                  //Èº´æÔÚ
+	else                  //ç¾¤å­˜åœ¨
 	{
 		return true;
 	}
 }
 
-// ÔÚ`chatgroup`ÖĞ´´½¨¸ÃÈºÁÄ£¬³õÊ¼»¯ÈºÁÄÃû£¬ÈºÖ÷£¬Èº³ÉÔ±ĞÅÏ¢
+// åœ¨`chatgroup`ä¸­åˆ›å»ºè¯¥ç¾¤èŠï¼Œåˆå§‹åŒ–ç¾¤èŠåï¼Œç¾¤ä¸»ï¼Œç¾¤æˆå‘˜ä¿¡æ¯
 void ChatDataBase::my_database_add_new_group(string group_name, string owner)
 {
 	char sql[128] = { 0 };
@@ -284,7 +284,7 @@ void ChatDataBase::my_database_add_new_group(string group_name, string owner)
 		cout << "mysql_query error" << endl;
 	}
 }
-// ÔÚ`user`ÖĞ£¬½«ÈºÁÄstring2¼ÓÈëµ½ÓÃ»§string1µÄÈºÁÄ×Ö·û´®ÖĞ
+// åœ¨`user`ä¸­ï¼Œå°†ç¾¤èŠstring2åŠ å…¥åˆ°ç”¨æˆ·string1çš„ç¾¤èŠå­—ç¬¦ä¸²ä¸­
 void ChatDataBase::my_database_user_add_group(string user_name, string group_name)
 {
 	char sql[1024] = { 0 };
@@ -297,19 +297,19 @@ void ChatDataBase::my_database_user_add_group(string user_name, string group_nam
 	string all_group;
 	MYSQL_RES* res = mysql_store_result(mysql);
 	MYSQL_ROW row = mysql_fetch_row(res);
-	if (row[0] != NULL) // Ô­À´ÈºÁÄ×Ö·û´®²»Îª¿Õ£¬ÔÚÄ©Î²¼ÓÉÏ"|group_name"
+	if (row[0] != NULL) // åŸæ¥ç¾¤èŠå­—ç¬¦ä¸²ä¸ä¸ºç©ºï¼Œåœ¨æœ«å°¾åŠ ä¸Š"|group_name"
 	{
 		all_group += row[0];
 		all_group += "|";
 		all_group += group_name;
 	}
-	else //Ô­À´ÈºÁÄ×Ö·û´®Îª¿Õ£¬¸ÃÈºÁÄÎªµÚÒ»¸öÈºÁÄ£¬Ö±½Ó¼ÓÉÏ
+	else //åŸæ¥ç¾¤èŠå­—ç¬¦ä¸²ä¸ºç©ºï¼Œè¯¥ç¾¤èŠä¸ºç¬¬ä¸€ä¸ªç¾¤èŠï¼Œç›´æ¥åŠ ä¸Š
 	{
 		all_group += group_name;
 	}
 
 	memset(sql, 0, sizeof(sql));
-	sprintf(sql, "update %s set chatgroup = '%s';", user_name.c_str(), all_group.c_str()); // ¸üĞÂchatgroup
+	sprintf(sql, "update %s set chatgroup = '%s';", user_name.c_str(), all_group.c_str()); // æ›´æ–°chatgroup
 	if (mysql_query(mysql, sql) != 0)
 	{
 		cout << "mysql_query error" << endl;
@@ -340,7 +340,7 @@ void ChatDataBase::my_database_group_add_user(string group_name, string user_nam
 	}
 
 	memset(sql, 0, sizeof(sql));
-	// ¸üĞÂÊı¾İ¿âÖĞ¸ÃÈºÁÄµÄÈºÁÄ³ÉÔ±×Ö¶Î
+	// æ›´æ–°æ•°æ®åº“ä¸­è¯¥ç¾¤èŠçš„ç¾¤èŠæˆå‘˜å­—æ®µ
 	sprintf(sql, "update %s set member = '%s';", group_name.c_str(), all_member.c_str());
 	if (mysql_query(mysql, sql) != 0)
 	{

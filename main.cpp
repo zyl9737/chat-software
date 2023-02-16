@@ -4,7 +4,7 @@ using namespace std;
 
 int main()
 {
-	// ´´½¨·şÎñÆ÷¶ÔÏó
+	// åˆ›å»ºæœåŠ¡å™¨å¯¹è±¡
 	Server s(IP, PORT);
 	return 0;
 }

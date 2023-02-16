@@ -25,8 +25,8 @@ int main()
 	memset(&server_addr, 0, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(8000);
-	server_addr.sin_addr.s_addr = inet_addr("172.17.7.99");
-	//Ïò·şÎñÆ÷·¢ÆğÁ¬½Ó
+	server_addr.sin_addr.s_addr = inet_addr("101.33.241.205");
+	//å‘æœåŠ¡å™¨å‘èµ·è¿æ¥
 	int ret = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	if (-1 == ret)
 	{
@@ -34,10 +34,10 @@ int main()
 		exit(1);
 	}
 
-	//char buf[320] = "{'cmd':'register','user':'Ğ¡Ã÷','ÃÜÂë':'11111'};";
+	//char buf[320] = "{'cmd':'register','user':'å°æ˜','å¯†ç ':'11111'};";
 	struct json_object* obj = json_object_new_object();
 	json_object_object_add(obj, "cmd", json_object_new_string("offline"));
-	json_object_object_add(obj, "user", json_object_new_string("Ğ¡Àî"));
+	json_object_object_add(obj, "user", json_object_new_string("å°æ"));
 	json_object_object_add(obj, "password", json_object_new_string("11111"));
 
 	const char* buf = json_object_to_json_string(obj);
@@ -51,7 +51,7 @@ int main()
 
 	char s[128] = { 0 };
 	ret = recv(sockfd, s, sizeof(s), 0);
-	printf("ÊÕµ½·şÎñÆ÷»Ø¸´ %s\n", s);
+	printf("æ”¶åˆ°æœåŠ¡å™¨å›å¤ %s\n", s);
 
 	while (1);
 

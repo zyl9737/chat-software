@@ -1,23 +1,23 @@
-//	#pragma once	ÎªÁË±ÜÃâÍ¬Ò»¸öÍ·ÎÄ¼ş±»°üº¬£¨include£©¶à´Î£¬C/C++ÖĞÓĞÁ½ÖÖºêÊµÏÖ·½Ê½£ºÒ»ÖÖÊÇ#ifndef·½Ê½£»ÁíÒ»ÖÖÊÇ#pragma once·½Ê½
+//	#pragma once	ä¸ºäº†é¿å…åŒä¸€ä¸ªå¤´æ–‡ä»¶è¢«åŒ…å«ï¼ˆincludeï¼‰å¤šæ¬¡ï¼ŒC/C++ä¸­æœ‰ä¸¤ç§å®å®ç°æ–¹å¼ï¼šä¸€ç§æ˜¯#ifndefæ–¹å¼ï¼›å¦ä¸€ç§æ˜¯#pragma onceæ–¹å¼
 #ifndef SERVER_H
 #define SERVER_H
 
 #include<iostream>
 #include <string.h>
-#include <event.h>			//Ê¹ÓÃls /usr/include/ÃüÁî²é¿´
-#include<event2/listener.h>	// evconnlistener	ºÍ	evconnlistener_new_bind µÄÍ·ÎÄ¼ş£¬Ê¹ÓÃls /usr/include/event2/²é¿´
+#include <event.h>			//ä½¿ç”¨ls /usr/include/å‘½ä»¤æŸ¥çœ‹
+#include<event2/listener.h>	// evconnlistener	å’Œ	evconnlistener_new_bind çš„å¤´æ–‡ä»¶ï¼Œä½¿ç”¨ls /usr/include/event2/æŸ¥çœ‹
 #include<thread>
 #include <jsoncpp/json/json.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>	// inet_addrº¯ÊıµÄÍ·ÎÄ¼ş
+#include <arpa/inet.h>	// inet_addrå‡½æ•°çš„å¤´æ–‡ä»¶
 
-#include <unistd.h>// usleep()Óësleep()ÀàËÆ,ÓÃÓÚÑÓ³Ù¹ÒÆğ½ø³Ì¡£½ø³Ì±»¹ÒÆğ·Åµ½reday queue,ÔÚÎÄ¼ş´«ÊäµÈ´ı¿Í»§¶ËÁ¬½ÓÎÄ¼ş·şÎñÆ÷»áÓÃµ½
+#include <unistd.h>// usleep()ä¸sleep()ç±»ä¼¼,ç”¨äºå»¶è¿ŸæŒ‚èµ·è¿›ç¨‹ã€‚è¿›ç¨‹è¢«æŒ‚èµ·æ”¾åˆ°reday queue,åœ¨æ–‡ä»¶ä¼ è¾“ç­‰å¾…å®¢æˆ·ç«¯è¿æ¥æ–‡ä»¶æœåŠ¡å™¨ä¼šç”¨åˆ°
 #include "chatlist.h"
 using namespace std;
 
-#define IP     "172.19.18.114" // ÄÚÍø£¿
+#define IP     "10.0.8.8" // å†…ç½‘ï¼Ÿ
 #define PORT   8000
 
 #define MAXSIZE  1024 * 1024 
@@ -25,21 +25,21 @@ using namespace std;
 class Server
 {
 private:
-	struct event_base* base;          //ÊÂ¼ş¼¯ºÏ
-	struct evconnlistener* listener;    //¼àÌıÊÂ¼ş
+	struct event_base* base;          //äº‹ä»¶é›†åˆ
+	struct evconnlistener* listener;    //ç›‘å¬äº‹ä»¶
 
-	static ChatInfo* chatlist;                //Á´±í¶ÔÏó£¨º¬ÓĞÁ½¸öÁ´±í£©
-	static ChatDataBase* chatdb;              //´´½¨Ò»¸öÊı¾İ¿â¶ÔÏó£¬±ÈÈç×¢²áµÈ¹¦ÄÜÊ±£¬ĞèÒª·ÃÎÊuserÊı¾İ¿â£¬»áÓÃµ½  
+	static ChatInfo* chatlist;                //é“¾è¡¨å¯¹è±¡ï¼ˆå«æœ‰ä¸¤ä¸ªé“¾è¡¨ï¼‰
+	static ChatDataBase* chatdb;              //åˆ›å»ºä¸€ä¸ªæ•°æ®åº“å¯¹è±¡ï¼Œæ¯”å¦‚æ³¨å†Œç­‰åŠŸèƒ½æ—¶ï¼Œéœ€è¦è®¿é—®useræ•°æ®åº“ï¼Œä¼šç”¨åˆ°  
 
 
-private: // ¾²Ì¬³ÉÔ±º¯Êı£¬¾²Ì¬º¯ÊıÓÉÀàÃû(::)(»ò¶ÔÏóÃû.)µ÷ÓÃ,µ«¾²Ì¬º¯Êı²»´«µİthisÖ¸Õë,²»Ê¶±ğ¶ÔÏó¸öÌå,ËùÒÔÍ¨³£ÓÃÀ´¶ÔÀàµÄ¾²Ì¬Êı¾İ³ÉÔ±²Ù×÷
-	/*ÀàµÄ¾²Ì¬³ÉÔ±(±äÁ¿ºÍ·½·¨)ÊôÓÚÀà±¾Éí£¬ÔÚÀà¼ÓÔØµÄÊ±ºò¾Í»á·ÖÅäÄÚ´æ£¬¿ÉÒÔÍ¨¹ıÀàÃûÖ±½ÓÈ¥·ÃÎÊ£»·Ç¾²Ì¬³ÉÔ±£¨±äÁ¿ºÍ·½·¨£©ÊôÓÚÀàµÄ¶ÔÏó£¬ËùÒÔÖ»ÓĞÔÚÀàµÄ¶ÔÏó²úÉú£¨´´½¨ÀàµÄÊµÀı£©Ê±²Å»á·ÖÅäÄÚ´æ£¬È»ºóÍ¨¹ıÀàµÄ¶ÔÏó£¨ÊµÀı£©È¥·ÃÎÊ¡£*/
+private: // é™æ€æˆå‘˜å‡½æ•°ï¼Œé™æ€å‡½æ•°ç”±ç±»å(::)(æˆ–å¯¹è±¡å.)è°ƒç”¨,ä½†é™æ€å‡½æ•°ä¸ä¼ é€’thisæŒ‡é’ˆ,ä¸è¯†åˆ«å¯¹è±¡ä¸ªä½“,æ‰€ä»¥é€šå¸¸ç”¨æ¥å¯¹ç±»çš„é™æ€æ•°æ®æˆå‘˜æ“ä½œ
+	/*ç±»çš„é™æ€æˆå‘˜(å˜é‡å’Œæ–¹æ³•)å±äºç±»æœ¬èº«ï¼Œåœ¨ç±»åŠ è½½çš„æ—¶å€™å°±ä¼šåˆ†é…å†…å­˜ï¼Œå¯ä»¥é€šè¿‡ç±»åç›´æ¥å»è®¿é—®ï¼›éé™æ€æˆå‘˜ï¼ˆå˜é‡å’Œæ–¹æ³•ï¼‰å±äºç±»çš„å¯¹è±¡ï¼Œæ‰€ä»¥åªæœ‰åœ¨ç±»çš„å¯¹è±¡äº§ç”Ÿï¼ˆåˆ›å»ºç±»çš„å®ä¾‹ï¼‰æ—¶æ‰ä¼šåˆ†é…å†…å­˜ï¼Œç„¶åé€šè¿‡ç±»çš„å¯¹è±¡ï¼ˆå®ä¾‹ï¼‰å»è®¿é—®ã€‚*/
 	static void listener_cb(struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr* addr, int socklen, void* arg);
-	static void client_handler(int); // ¿Í»§¶Ë¶ÔÓ¦Ïß³Ì´¦Àíº¯Êı
+	static void client_handler(int); // å®¢æˆ·ç«¯å¯¹åº”çº¿ç¨‹å¤„ç†å‡½æ•°
 	static void read_cb(struct bufferevent* bev, void* ctx);
 	static void event_cb(struct bufferevent* bev, short what, void* ctx);
 
-	static void send_file_handler(int, int, int*, int*); // ÎÄ¼ş·şÎñÆ÷¶ÔÓ¦µÄÏß³Ì´¦Àíº¯Êı
+	static void send_file_handler(int, int, int*, int*); // æ–‡ä»¶æœåŠ¡å™¨å¯¹åº”çš„çº¿ç¨‹å¤„ç†å‡½æ•°
 
 
 	static void server_register(struct bufferevent* bev, Json::Value val);
@@ -54,7 +54,7 @@ private: // ¾²Ì¬³ÉÔ±º¯Êı£¬¾²Ì¬º¯ÊıÓÉÀàÃû(::)(»ò¶ÔÏóÃû.)µ÷ÓÃ,µ«¾²Ì¬º¯Êı²»´«µİthis
 	static void server_send_file(struct bufferevent* bev, Json::Value val);
 
 public:
-	Server(const char *ip = "127.0.0.1", int port = 8000); // ÓĞ²Î¹¹Ôìº¯Êı
+	Server(const char *ip = "127.0.0.1", int port = 8000); // æœ‰å‚æ„é€ å‡½æ•°
 	~Server();
 };
 

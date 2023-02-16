@@ -8,26 +8,26 @@
 
 using namespace std;
 
-#define MAXNUM    1024     //±íÊ¾Èº×î´ó¸öÊı
+#define MAXNUM    1024     //è¡¨ç¤ºç¾¤æœ€å¤§ä¸ªæ•°
 
-struct User               // ÔÚÏßÓÃ»§Àà
+struct User               // åœ¨çº¿ç”¨æˆ·ç±»
 {
-	string name;		  // ÔÚÏßÓÃ»§Ãû
-	struct bufferevent* bev; // Ã¿¸öÔÚÏßÓÃ»§µÄ»º³åÇø¶ÔÏó
+	string name;		  // åœ¨çº¿ç”¨æˆ·å
+	struct bufferevent* bev; // æ¯ä¸ªåœ¨çº¿ç”¨æˆ·çš„ç¼“å†²åŒºå¯¹è±¡
 };
 typedef struct User User;
 
-struct GroupUser	// Èº³ÉÔ±Àà
+struct GroupUser	// ç¾¤æˆå‘˜ç±»
 {
 	string name;
 };
 
 typedef struct GroupUser GroupUser;
 
-struct Group	//ÈºÁÄÀà
+struct Group	//ç¾¤èŠç±»
 {
-	string name;	// ÈºÁÄÃû³Æ
-	list<GroupUser>* l; // ÈºÁÄÖĞÈº³ÉÔ±Á´±í
+	string name;	// ç¾¤èŠåç§°
+	list<GroupUser>* l; // ç¾¤èŠä¸­ç¾¤æˆå‘˜é“¾è¡¨
 };
 typedef struct Group Group;
 
@@ -35,22 +35,22 @@ class Server;
 
 class ChatInfo
 {
-	friend class Server; // ÉùÃ÷ServerÊÇÁ´±íÀàChatInfoµÄÓÑÔªÀà£¬¿ÉÒÔ·ÃÎÊChatInfoÖĞµÄµÄÒş²ØĞÅÏ¢£¨°üÀ¨Ë½ÓĞ³ÉÔ±ºÍ±£»¤³ÉÔ±£©¡£
+	friend class Server; // å£°æ˜Serveræ˜¯é“¾è¡¨ç±»ChatInfoçš„å‹å…ƒç±»ï¼Œå¯ä»¥è®¿é—®ChatInfoä¸­çš„çš„éšè—ä¿¡æ¯ï¼ˆåŒ…æ‹¬ç§æœ‰æˆå‘˜å’Œä¿æŠ¤æˆå‘˜ï¼‰ã€‚
 private:
-	list<User>* online_user;     //±£´æËùÓĞÔÚÏßµÄÓÃ»§ĞÅÏ¢¡ª¡ª¡ª¡ªÁ´±íĞÎÊ½
-	list<Group>* group_info;     //±£´æËùÓĞÈºÁÄĞÅÏ¢¡ª¡ª¡ª¡ªÁ´±í
-	ChatDataBase* mydatabase;    //Êı¾İ¿â¶ÔÏó
+	list<User>* online_user;     //ä¿å­˜æ‰€æœ‰åœ¨çº¿çš„ç”¨æˆ·ä¿¡æ¯â€”â€”â€”â€”é“¾è¡¨å½¢å¼
+	list<Group>* group_info;     //ä¿å­˜æ‰€æœ‰ç¾¤èŠä¿¡æ¯â€”â€”â€”â€”é“¾è¡¨
+	ChatDataBase* mydatabase;    //æ•°æ®åº“å¯¹è±¡
 
 public:
 	ChatInfo();
 	~ChatInfo();
 
 	bool info_group_exist(string);
-	bool info_user_in_group(string, string); // ÅĞ¶Ï¸ÃÓÃ»§string2ÊÇ·ñÒÑ¾­ÔÚ¸ÃÈºÁÄstring1ÖĞ
-	void info_group_add_user(string, string); // ½«ÓÃ»§string2¼ÓÈëµ½¸ÃÈºÁÄstring1½ÚµãµÄÈº³ÉÔ±Á´±íÖĞ
+	bool info_user_in_group(string, string); // åˆ¤æ–­è¯¥ç”¨æˆ·string2æ˜¯å¦å·²ç»åœ¨è¯¥ç¾¤èŠstring1ä¸­
+	void info_group_add_user(string, string); // å°†ç”¨æˆ·string2åŠ å…¥åˆ°è¯¥ç¾¤èŠstring1èŠ‚ç‚¹çš„ç¾¤æˆå‘˜é“¾è¡¨ä¸­
 	struct bufferevent* info_get_friend_bev(string);
-	string info_get_group_member(string);	  // »ñÈ¡ÈºÁÄstring2µÄÈº³ÉÔ±£¬·µ»Ø¸østring1
-	void info_add_new_group(string, string); // ½«ĞÂ½¨ÈºÁÄ£¨ÈºÃûÎªstring1£¬Èº³ÉÔ±Îªstring2£©¼ÓÈëµ½ÈºĞÅÏ¢Á´±íÖĞ
+	string info_get_group_member(string);	  // è·å–ç¾¤èŠstring2çš„ç¾¤æˆå‘˜ï¼Œè¿”å›ç»™string1
+	void info_add_new_group(string, string); // å°†æ–°å»ºç¾¤èŠï¼ˆç¾¤åä¸ºstring1ï¼Œç¾¤æˆå‘˜ä¸ºstring2ï¼‰åŠ å…¥åˆ°ç¾¤ä¿¡æ¯é“¾è¡¨ä¸­
 };
 
 #endif

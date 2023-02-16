@@ -1,101 +1,104 @@
 #include "server.h"
 
+ChatDataBase *Server::chatdb = new ChatDataBase;
+ChatInfo *Server::chatlist = new ChatInfo;
+
 Server::Server(const char *ip, int port)
 {
-	//´´½¨ÊÂ¼ş¼¯ºÏ
+	//åˆ›å»ºäº‹ä»¶é›†åˆ
 	base = event_base_new();
 
-	// socketÍøÂç±à³ÌÖªÊ¶
-	struct sockaddr_in server_addr; // Ê¹ÓÃÃüÁîman inet_addr£¬ÕÒµ½ĞèÒª°üº¬Í·ÎÄ¼ş#include <sys/socket.h>£¬#include <netinet/in.h>£¬#include <arpa/inet.h>
-	memset(&server_addr, 0, sizeof(server_addr));  // ³õÊ¼»¯¡ª¡ª¡ª¡ªÇå¿ÕµØÖ·£¬memsetĞèÒª°üº¬Í·ÎÄ¼ş#include<string.h>
-	server_addr.sin_family = AF_INET;	// Ê¹ÓÃman socket£¬ÕÒµ½AF_INET£¬IPv4Ğ­ÒéµØÖ·×å£¬AF_INET      IPv4 Internet protocols
-	server_addr.sin_port = htons(port); // ´óĞ¡¶Ë×ª»»£¬×ª»»ÎªÍøÂç×Ö½ÚĞò
+	// socketç½‘ç»œç¼–ç¨‹çŸ¥è¯†
+	struct sockaddr_in server_addr; // ä½¿ç”¨å‘½ä»¤man inet_addrï¼Œæ‰¾åˆ°éœ€è¦åŒ…å«å¤´æ–‡ä»¶#include <sys/socket.h>ï¼Œ#include <netinet/in.h>ï¼Œ#include <arpa/inet.h>
+	memset(&server_addr, 0, sizeof(server_addr));  // åˆå§‹åŒ–â€”â€”â€”â€”æ¸…ç©ºåœ°å€ï¼Œmemsetéœ€è¦åŒ…å«å¤´æ–‡ä»¶#include<string.h>
+	server_addr.sin_family = AF_INET;	// ä½¿ç”¨man socketï¼Œæ‰¾åˆ°AF_INETï¼ŒIPv4åè®®åœ°å€æ—ï¼ŒAF_INET      IPv4 Internet protocols
+	server_addr.sin_port = htons(port); // å¤§å°ç«¯è½¬æ¢ï¼Œè½¬æ¢ä¸ºç½‘ç»œå­—èŠ‚åº
 	server_addr.sin_addr.s_addr = inet_addr(ip);
 
-	//´´½¨¼àÌı¶ÔÏó
+	//åˆ›å»ºç›‘å¬å¯¹è±¡
 	listener = evconnlistener_new_bind (base, listener_cb, NULL,
 		LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE, 10, (struct sockaddr*)&server_addr,
 		sizeof(server_addr));
 	/*
-		listener_cb					Ò»¸ö»Øµ÷º¯ÊıÊµÀı£¬£¬Ò»µ©ÓĞ¿Í»§¶Ë·¢ÆğÁ¬½Ó£¬±»¼àÌı¶ÔÏó¼àÌıµ½£¬´¥·¢»Øµ÷º¯Êı£¬¶Ô¸ÃÁ¬½Ó½øĞĞ´¦Àí
-		LEV_OPT_CLOSE_ON_FREE		Á¬½Ó¶Ï¿ªÊ±ÊÍ·Å¼àÌı¶ÔÏó
-		LEV_OPT_REUSEABLE			ipµØÖ·¿ÉÒÔÖØ¸´°ó¶¨£¨¸´ÓÃ£©£¬µ÷ÊÔÊ±£¬µ±ctrl+cÔİÍ£·şÎñÆ÷³ÌĞòÔËĞĞÊ±£¬½â¾öµØÖ·ÒÑ¾­±»°ó¶¨µÄÎÊÌâ
-		backlog = 10				ÉèÖÃ¼àÌı¶ÓÁĞµÄ³¤¶È
-		(struct sockaddr *)&server_addr   Ç¿ÖÆ×ª»»
+		listener_cb					ä¸€ä¸ªå›è°ƒå‡½æ•°å®ä¾‹ï¼Œï¼Œä¸€æ—¦æœ‰å®¢æˆ·ç«¯å‘èµ·è¿æ¥ï¼Œè¢«ç›‘å¬å¯¹è±¡ç›‘å¬åˆ°ï¼Œè§¦å‘å›è°ƒå‡½æ•°ï¼Œå¯¹è¯¥è¿æ¥è¿›è¡Œå¤„ç†
+		LEV_OPT_CLOSE_ON_FREE		è¿æ¥æ–­å¼€æ—¶é‡Šæ”¾ç›‘å¬å¯¹è±¡
+		LEV_OPT_REUSEABLE			ipåœ°å€å¯ä»¥é‡å¤ç»‘å®šï¼ˆå¤ç”¨ï¼‰ï¼Œè°ƒè¯•æ—¶ï¼Œå½“ctrl+cæš‚åœæœåŠ¡å™¨ç¨‹åºè¿è¡Œæ—¶ï¼Œè§£å†³åœ°å€å·²ç»è¢«ç»‘å®šçš„é—®é¢˜
+		backlog = 10				è®¾ç½®ç›‘å¬é˜Ÿåˆ—çš„é•¿åº¦
+		(struct sockaddr *)&server_addr   å¼ºåˆ¶è½¬æ¢
 	*/
 	if (NULL == listener)
 	{
-		cout << "evconnlistener_new_bind error£¡" << endl;
+		cout << "evconnlistener_new_bind errorï¼" << endl;
 	}
 
-	cout << "·şÎñÆ÷³õÊ¼»¯³É¹¦ ¿ªÊ¼¼àÌı¿Í»§¶Ë" << endl;
-	event_base_dispatch(base);       //¼àÌı¼¯ºÏ¡ª¡ª¡ª¡ªÑ­»·¡£
-	//cout << "²âÊÔVS2019Ô¶³ÌÁ¬½ÓÎÒµÄ°¢ÀïÔÆ·şÎñÆ÷£¬µ÷ÊÔlinuxÖĞµÄ³ÌĞò" << endl;
+	cout << "æœåŠ¡å™¨åˆå§‹åŒ–æˆåŠŸ å¼€å§‹ç›‘å¬å®¢æˆ·ç«¯" << endl;
+	event_base_dispatch(base);       //ç›‘å¬é›†åˆâ€”â€”â€”â€”å¾ªç¯ã€‚
+	//cout << "æµ‹è¯•VS2019è¿œç¨‹è¿æ¥æˆ‘çš„é˜¿é‡Œäº‘æœåŠ¡å™¨ï¼Œè°ƒè¯•linuxä¸­çš„ç¨‹åº" << endl;
 	
 }
 
 void Server::listener_cb (struct evconnlistener* listener, evutil_socket_t fd, struct sockaddr *addr, int socklen, void *arg)
 {
-	cout << "½ÓÊÜ¿Í»§¶ËµÄÁ¬½Ó£¬fd = " << fd << endl;
+	cout << "æ¥å—å®¢æˆ·ç«¯çš„è¿æ¥ï¼Œfd = " << fd << endl;
 
-	//´´½¨¹¤×÷Ïß³ÌÀ´´¦Àí¸Ã¿Í»§¶Ë
-	thread client_thread(client_handler, fd);	// #include<thread>Ïß³ÌÀàÍ·ÎÄ¼ş
-	client_thread.detach();    //Ïß³Ì·ÖÀë£¬µ±Ïß³ÌÔËĞĞ½áÊøºó£¬×Ô¶¯ÊÍ·Å×ÊÔ´
+	//åˆ›å»ºå·¥ä½œçº¿ç¨‹æ¥å¤„ç†è¯¥å®¢æˆ·ç«¯
+	thread client_thread(client_handler, fd);	// #include<thread>çº¿ç¨‹ç±»å¤´æ–‡ä»¶
+	client_thread.detach();    //çº¿ç¨‹åˆ†ç¦»ï¼Œå½“çº¿ç¨‹è¿è¡Œç»“æŸåï¼Œè‡ªåŠ¨é‡Šæ”¾èµ„æº
 };
 
-// Ä³¿Í»§¶ËµÄ¹¤×÷Ïß³Ì
+// æŸå®¢æˆ·ç«¯çš„å·¥ä½œçº¿ç¨‹
 void Server::client_handler(int fd)
 {
-	//´´½¨Ä³Ò»¿Í»§¶ËÊÂ¼ş¼¯ºÏ
+	//åˆ›å»ºæŸä¸€å®¢æˆ·ç«¯äº‹ä»¶é›†åˆ
 	struct event_base* base = event_base_new();
 
-	// ´´½¨bufferevent»º´æÇø¶ÔÏó
+	// åˆ›å»ºbuffereventç¼“å­˜åŒºå¯¹è±¡
 	struct bufferevent* bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
 	if (NULL == bev) {
 		cout << "bufferevent_socket_new error!" << endl;
 	}
-	//¸øbuffereventÉèÖÃ»Øµ÷º¯Êı
+	//ç»™buffereventè®¾ç½®å›è°ƒå‡½æ•°
 	bufferevent_setcb(bev, read_cb, NULL, event_cb, NULL);
 
-	//Ê¹ÄÜ»Øµ÷º¯Êı
+	//ä½¿èƒ½å›è°ƒå‡½æ•°
 	bufferevent_enable(bev, EV_READ);
 
-	event_base_dispatch(base);    //Ñ­»·¼àÌı¼¯ºÏ£¨¼àÌı¿Í»§¶ËÊÇ·ñÓĞÊı¾İ·¢ËÍ¹ıÀ´£©£¬³ÌĞò¿¨ÔÚÕâÀï£¬µ±¿Í»§¶ËÍË³ö£¬ÔòÍùÏÂ½øĞĞ
+	event_base_dispatch(base);    //å¾ªç¯ç›‘å¬é›†åˆï¼ˆç›‘å¬å®¢æˆ·ç«¯æ˜¯å¦æœ‰æ•°æ®å‘é€è¿‡æ¥ï¼‰ï¼Œç¨‹åºå¡åœ¨è¿™é‡Œï¼Œå½“å®¢æˆ·ç«¯é€€å‡ºï¼Œåˆ™å¾€ä¸‹è¿›è¡Œ
 
 	event_base_free(base);
-	cout << "ÊÍ·Å¼¯ºÏ¡¢Ïß³ÌÍË³ö" << endl; // Ä³Ò»Á¬½ÓµÄ¿Í»§¶Ë¶Ï¿ªÊ±£¬´òÓ¡´ËĞĞ
+	cout << "é‡Šæ”¾é›†åˆã€çº¿ç¨‹é€€å‡º" << endl; // æŸä¸€è¿æ¥çš„å®¢æˆ·ç«¯æ–­å¼€æ—¶ï¼Œæ‰“å°æ­¤è¡Œ
 }
-void Server::read_cb(struct bufferevent* bev, void* ctx)	// ´Ó¿Í»§¶Ë¶ÁÈ¡Êı¾İ»Øµ÷º¯Êı
+void Server::read_cb(struct bufferevent* bev, void* ctx)	// ä»å®¢æˆ·ç«¯è¯»å–æ•°æ®å›è°ƒå‡½æ•°
 {
 	char buf[1024] = { 0 };
-	int size = bufferevent_read(bev, buf, sizeof(buf)); // ½«´Ó»º´æÇøbev¶Áµ½µÄÊı¾İ·Åµ½bufÊı×éÖĞ
+	int size = bufferevent_read(bev, buf, sizeof(buf)); // å°†ä»ç¼“å­˜åŒºbevè¯»åˆ°çš„æ•°æ®æ”¾åˆ°bufæ•°ç»„ä¸­
 	if (size < 0)
 	{
 		cout << "bufferevent_read error" << endl;
 	}
 
-	cout << buf << endl; // ÔÚ·şÎñÆ÷ÖĞ´òÓ¡¿Í»§¶Ë·¢¹ıÀ´µÄÏûÏ¢£¬¿ÉÒÔ°ïÖúÎÒÃÇµ÷ÊÔ£¬Àí½âÂß¼­¹ØÏµ
+	cout << buf << endl; // åœ¨æœåŠ¡å™¨ä¸­æ‰“å°å®¢æˆ·ç«¯å‘è¿‡æ¥çš„æ¶ˆæ¯ï¼Œå¯ä»¥å¸®åŠ©æˆ‘ä»¬è°ƒè¯•ï¼Œç†è§£é€»è¾‘å…³ç³»
 
 	/*https://www.sojson.com/json/json_what.html             
-	JsonÏê½â£¬±¾ÉíÊÇÒ»ÖÖ{¼üÖµ¶Ô}µÄ×Ö·û´®£¬µÄÊı¾İĞÎÊ½/½á¹¹£¬ÓÃÓÚÊı¾İ´«Êä*/
+	Jsonè¯¦è§£ï¼Œæœ¬èº«æ˜¯ä¸€ç§{é”®å€¼å¯¹}çš„å­—ç¬¦ä¸²ï¼Œçš„æ•°æ®å½¢å¼/ç»“æ„ï¼Œç”¨äºæ•°æ®ä¼ è¾“*/
 
 
-	Json::Reader reader;       //½âÎöjson¶ÔÏó,°üº¬Í·ÎÄ¼ş#include <jsoncpp/json/json.h>
-	Json::FastWriter writer;   //½«·şÎñÆ÷·µ»Ø¸ø¿Í»§¶ËµÄÊı¾İ£¨½«ÄÚ´æÖĞµÄValue¶ÔÏó£¬×ª»»³ÉJSONÎÄµµ/£©·â×°json¶ÔÏó£¬Êä³öµ½ÎÄ¼ş»òÕßÊÇ×Ö·û´®ÖĞ£¬±ãÓÚ·¢ËÍ¸ø¿Í»§¶Ë
+	Json::Reader reader;       //è§£æjsonå¯¹è±¡,åŒ…å«å¤´æ–‡ä»¶#include <jsoncpp/json/json.h>
+	Json::FastWriter writer;   //å°†æœåŠ¡å™¨è¿”å›ç»™å®¢æˆ·ç«¯çš„æ•°æ®ï¼ˆå°†å†…å­˜ä¸­çš„Valueå¯¹è±¡ï¼Œè½¬æ¢æˆJSONæ–‡æ¡£/ï¼‰å°è£…jsonå¯¹è±¡ï¼Œè¾“å‡ºåˆ°æ–‡ä»¶æˆ–è€…æ˜¯å­—ç¬¦ä¸²ä¸­ï¼Œä¾¿äºå‘é€ç»™å®¢æˆ·ç«¯
 	Json::Value val;
 
-	if (!reader.parse(buf, val))    //parse°Ñ¿Í»§¶ËÊäÈëµÄÂú×ãJSON¹æÔòµÄ×Ö·û´®×ª»»³É json ¶ÔÏó£¬²¢±£´æÔÚval£¨£©ÖĞ
+	if (!reader.parse(buf, val))    //parseæŠŠå®¢æˆ·ç«¯è¾“å…¥çš„æ»¡è¶³JSONè§„åˆ™çš„å­—ç¬¦ä¸²è½¬æ¢æˆ json å¯¹è±¡ï¼Œå¹¶ä¿å­˜åœ¨valï¼ˆï¼‰ä¸­
 	{
-		cout << "·şÎñÆ÷½âÎöÊı¾İÊ§°Ü" << endl;
+		cout << "æœåŠ¡å™¨è§£ææ•°æ®å¤±è´¥" << endl;
 	}
 
-	string cmd = val["cmd"].asString();//asString()º¯Êı½«json¸ñÊ½Ö±½Ó×ªÎª×Ö·û´®£¬±ãÓÚÊ¹ÓÃ
+	string cmd = val["cmd"].asString();//asString()å‡½æ•°å°†jsonæ ¼å¼ç›´æ¥è½¬ä¸ºå­—ç¬¦ä¸²ï¼Œä¾¿äºä½¿ç”¨
 
-	if (cmd == "register")   //×¢²á¹¦ÄÜ
+	if (cmd == "register")   //æ³¨å†ŒåŠŸèƒ½
 	{
-		server_register(bev, val); // µÚÒ»¸ö²ÎÊıÎª»º´æÇø¶ÔÏóbev£¬Õë¶ÔÄ³Ò»¸öÌØ¶¨¿Í»§¶ËµÄ£¬µÚ¶ş¸ö²ÎÊıÎª¿Í»§¶Ë·¢ËÍµÄĞÅÏ¢£¬ÒÔÏÂ¾ùÊÇ
+		server_register(bev, val); // ç¬¬ä¸€ä¸ªå‚æ•°ä¸ºç¼“å­˜åŒºå¯¹è±¡bevï¼Œé’ˆå¯¹æŸä¸€ä¸ªç‰¹å®šå®¢æˆ·ç«¯çš„ï¼Œç¬¬äºŒä¸ªå‚æ•°ä¸ºå®¢æˆ·ç«¯å‘é€çš„ä¿¡æ¯ï¼Œä»¥ä¸‹å‡æ˜¯
 	}
-	// ÒÔÏÂ¹¦ÄÜ»¹Ã»¿´
+	// ä»¥ä¸‹åŠŸèƒ½è¿˜æ²¡çœ‹
 	else if (cmd == "login")
 	{
 		server_login(bev, val);
@@ -134,35 +137,35 @@ void Server::read_cb(struct bufferevent* bev, void* ctx)	// ´Ó¿Í»§¶Ë¶ÁÈ¡Êı¾İ»Øµ÷
 	}
 }
 
-void Server::event_cb(struct bufferevent* bev, short what, void* ctx)	// Òì³£´¦Àí»Øµ÷º¯Êı
+void Server::event_cb(struct bufferevent* bev, short what, void* ctx)	// å¼‚å¸¸å¤„ç†å›è°ƒå‡½æ•°
 {
 
 }
 Server::~Server()
 {
-	event_base_free(base);           //×îÖÕÊÍ·Å¼¯ºÏ£¬·ñÔòÈİÒ×Ôì³ÉÄÚ´æĞ¹Â¶
+	event_base_free(base);           //æœ€ç»ˆé‡Šæ”¾é›†åˆï¼Œå¦åˆ™å®¹æ˜“é€ æˆå†…å­˜æ³„éœ²
 }
 
-void Server::server_register(struct bufferevent* bev, Json::Value val) // ½ÓÏÂÀ´ÅĞ¶Ïµ±Ç°×¢²áµÄÓÃ»§ÊÇ·ñÒÑ¾­ÔÚuserÊı¾İ¿âÖĞ£¬Èô²»´æÔÚ£¬ĞèÒª¼Ó½øÈ¥
+void Server::server_register(struct bufferevent* bev, Json::Value val) // æ¥ä¸‹æ¥åˆ¤æ–­å½“å‰æ³¨å†Œçš„ç”¨æˆ·æ˜¯å¦å·²ç»åœ¨useræ•°æ®åº“ä¸­ï¼Œè‹¥ä¸å­˜åœ¨ï¼Œéœ€è¦åŠ è¿›å»
 {
-	chatdb->my_database_connect("user"); //Ê×ÏÈÁ¬½ÓÉÏuserÊı¾İ¿â,Ïàµ±ÓÚ³õÊ¼»¯¾²Ì¬³ÉÔ±
+	chatdb->my_database_connect("user"); //é¦–å…ˆè¿æ¥ä¸Šuseræ•°æ®åº“,ç›¸å½“äºåˆå§‹åŒ–é™æ€æˆå‘˜
 
-	if (chatdb->my_database_user_exist(val["user"].asString()))   //ÓÃ»§´æÔÚ
+	if (chatdb->my_database_user_exist(val["user"].asString()))   //ç”¨æˆ·å­˜åœ¨
 	{
-		Json::Value val;// ĞÂ½¨Ò»¸öjson¸ñÊ½µÄÊı¾İ,ÍùÀïÃæ¼ÓÈë¼üÖµ¶Ô
-		val["cmd"] = "register_reply";// ×¢²á»Ø¸´£¬½á¹ûÊ§°Ü
+		Json::Value val;// æ–°å»ºä¸€ä¸ªjsonæ ¼å¼çš„æ•°æ®,å¾€é‡Œé¢åŠ å…¥é”®å€¼å¯¹
+		val["cmd"] = "register_reply";// æ³¨å†Œå›å¤ï¼Œç»“æœå¤±è´¥
 		val["result"] = "failure";
 
-		string s = Json::FastWriter().write(val);//½«ÄÚ´æÖĞµÄValue¶ÔÏó×ª»»³ÉJSONÎÄµµ,Êä³öµ½ÎÄ¼ş»òÕßÊÇ×Ö·û´®ÖĞ
+		string s = Json::FastWriter().write(val);//å°†å†…å­˜ä¸­çš„Valueå¯¹è±¡è½¬æ¢æˆJSONæ–‡æ¡£,è¾“å‡ºåˆ°æ–‡ä»¶æˆ–è€…æ˜¯å­—ç¬¦ä¸²ä¸­
 
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)//int bufferevent_write(struct bufferevent *bufev,const void* data, size_t size);return 0 if successful, or -1 if an error occurred
 		{
 			cout << "bufferevent_write error!" << endl;
 		}
 	}
-	else                                               //ÓÃ»§²»´æÔÚ
+	else                                               //ç”¨æˆ·ä¸å­˜åœ¨
 	{
-		chatdb->my_database_user_password(val["user"].asString(), val["password"].asString());//½«×¢²áÓÃ»§ÃûºÍÃÜÂë£¬¼ÓÈëµ½userÊı¾İ¿âÖĞ
+		chatdb->my_database_user_password(val["user"].asString(), val["password"].asString());//å°†æ³¨å†Œç”¨æˆ·åå’Œå¯†ç ï¼ŒåŠ å…¥åˆ°useræ•°æ®åº“ä¸­
 		
 		Json::Value val;
 		val["cmd"] = "register_reply";
@@ -175,14 +178,14 @@ void Server::server_register(struct bufferevent* bev, Json::Value val) // ½ÓÏÂÀ´
 		}
 	}
 
-	chatdb->my_database_disconnect();//×¢²á½áÊø¹Ø±ÕÊı¾İ¿â£¨user£©
+	chatdb->my_database_disconnect();//æ³¨å†Œç»“æŸå…³é—­æ•°æ®åº“ï¼ˆuserï¼‰
 }
 
-//ÒÔÏÂ»¹Î´¿´
+//ä»¥ä¸‹è¿˜æœªçœ‹
 void Server::server_login(struct bufferevent* bev, Json::Value val)
 {
 	chatdb->my_database_connect("user");
-	if (!chatdb->my_database_user_exist(val["user"].asString()))   //ÓÃ»§²»´æÔÚ
+	if (!chatdb->my_database_user_exist(val["user"].asString()))   //ç”¨æˆ·ä¸å­˜åœ¨
 	{
 		Json::Value val;
 		val["cmd"] = "login_reply";
@@ -193,11 +196,11 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		{
 			cout << "bufferevent_write error" << endl;
 		}
-		return; // µÇÂ¼Ê§°Ü£¬Á¢¼´½áÊøµôµÇÂ¼º¯Êı
+		return; // ç™»å½•å¤±è´¥ï¼Œç«‹å³ç»“æŸæ‰ç™»å½•å‡½æ•°
 	}
 
 	if (!chatdb->my_database_password_correct(val["user"].asString(),
-		val["password"].asString()))    //ÃÜÂë²»ÕıÈ·
+		val["password"].asString()))    //å¯†ç ä¸æ­£ç¡®
 	{
 		Json::Value val;
 		val["cmd"] = "login_reply";
@@ -208,23 +211,23 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		{
 			cout << "bufferevent_write error" << endl;
 		}
-		return; // µÇÂ¼Ê§°Ü£¬Á¢¼´½áÊøµôµÇÂ¼º¯Êı
+		return; // ç™»å½•å¤±è´¥ï¼Œç«‹å³ç»“æŸæ‰ç™»å½•å‡½æ•°
 	}
 
 	Json::Value v;
 	string s, name;
 
-	//ÏòÔÚÏßÓÃ»§Á´±íÖĞÌí¼Ó¸ÃÓÃ»§
+	//å‘åœ¨çº¿ç”¨æˆ·é“¾è¡¨ä¸­æ·»åŠ è¯¥ç”¨æˆ·
 	User u = { val["user"].asString(), bev };
 	chatlist->online_user->push_back(u);
 
-	//»ñÈ¡ºÃÓÑºÍÈºÁÄÁĞ±í²¢ÇÒ·µ»Ø
+	//è·å–å¥½å‹å’Œç¾¤èŠåˆ—è¡¨å¹¶ä¸”è¿”å›
 	string friend_list, group_list;
 	chatdb->my_database_get_friend_group(val["user"].asString(), friend_list, group_list);
 
 	v["cmd"] = "login_reply";
-	// v["currentLoginUser"] = val["user"].asString(); // lzs¡ª¡ªµÇÂ¼³É¹¦ºó£¬£¬±ãÓÚ¿Í»§¶ËÊµÏÖÓÃ»§µÇÂ¼ºó£¬½«ÓÃ»§ÃûÉèÖÃÎªÓÃ»§½çÃæ±êÌâ
-	// Ò²¿ÉÒÔ´Óqt¿Í»§¶Ë£¬widge´°¿ÚµÇÂ¼ÊäÈëµÄÓÃ»§Ãû£¬ÔÙ´«µİ¸øÓÃ»§µÄÁÄÌì½çÃæ£¬ºóÃæµÄÌí¼ÓºÃÓÑ£¬´´½¨ÈºÁÄ£¨ÈºÖ÷ºÍÈº³ÉÔ±¶¼ÊÇµ±Ç°ÓÃ»§£©µÈ¶¼ÓÃµÄµ½
+	// v["currentLoginUser"] = val["user"].asString(); // lzsâ€”â€”ç™»å½•æˆåŠŸåï¼Œï¼Œä¾¿äºå®¢æˆ·ç«¯å®ç°ç”¨æˆ·ç™»å½•åï¼Œå°†ç”¨æˆ·åè®¾ç½®ä¸ºç”¨æˆ·ç•Œé¢æ ‡é¢˜
+	// ä¹Ÿå¯ä»¥ä»qtå®¢æˆ·ç«¯ï¼Œwidgeçª—å£ç™»å½•è¾“å…¥çš„ç”¨æˆ·åï¼Œå†ä¼ é€’ç»™ç”¨æˆ·çš„èŠå¤©ç•Œé¢ï¼Œåé¢çš„æ·»åŠ å¥½å‹ï¼Œåˆ›å»ºç¾¤èŠï¼ˆç¾¤ä¸»å’Œç¾¤æˆå‘˜éƒ½æ˜¯å½“å‰ç”¨æˆ·ï¼‰ç­‰éƒ½ç”¨çš„åˆ°
 	v["result"] = "success";
 	v["friend"] = friend_list;
 	v["group"] = group_list;
@@ -234,7 +237,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		cout << "bufferevent_write" << endl;
 	}
 
-	//ÏòºÃÓÑ·¢ËÍÉÏÏßÌáĞÑ
+	//å‘å¥½å‹å‘é€ä¸Šçº¿æé†’
 	int start = 0, end = 0, flag = 1;
 	while (flag)
 	{
@@ -242,7 +245,7 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		if (-1 == end)
 		{
 			name = friend_list.substr(start, friend_list.size() - start);
-			flag = 0;//±éÀúÍê×îºóÒ»¸öºÃÓÑ£¬ÍË³öÑ­»·
+			flag = 0;//éå†å®Œæœ€åä¸€ä¸ªå¥½å‹ï¼Œé€€å‡ºå¾ªç¯
 		}
 		else
 		{
@@ -252,13 +255,13 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 		for (list<User>::iterator it = chatlist->online_user->begin();
 			it != chatlist->online_user->end(); it++)
 		{
-			if (name == it->name) // ÅĞ¶ÏºÃÓÑÊÇ·ñÔÚÏß£¬Èç¹ûÔÚÏß£¬ÏòºÃÓÑit->name·¢ËÍ£¬×Ô¼ºµÄÉÏÏßÌáĞÑ
+			if (name == it->name) // åˆ¤æ–­å¥½å‹æ˜¯å¦åœ¨çº¿ï¼Œå¦‚æœåœ¨çº¿ï¼Œå‘å¥½å‹it->nameå‘é€ï¼Œè‡ªå·±çš„ä¸Šçº¿æé†’
 			{
 				v.clear();
 				v["cmd"] = "friend_login";
-				v["friend"] = val["user"]; // µÇÂ¼ÓÃ»§userÊÇ±ğÈËµÄºÃÓÑ
+				v["friend"] = val["user"]; // ç™»å½•ç”¨æˆ·useræ˜¯åˆ«äººçš„å¥½å‹
 				s = Json::FastWriter().write(v);
-				if (bufferevent_write(it->bev, s.c_str(), strlen(s.c_str())) < 0)   // ·¢¸ø¸ÃµÇÂ¼ÓÃ»§µÄËùÓĞÔÚÏßºÃÓÑ
+				if (bufferevent_write(it->bev, s.c_str(), strlen(s.c_str())) < 0)   // å‘ç»™è¯¥ç™»å½•ç”¨æˆ·çš„æ‰€æœ‰åœ¨çº¿å¥½å‹
 				{
 					cout << "bufferevent_write" << endl;
 				}
@@ -271,32 +274,32 @@ void Server::server_login(struct bufferevent* bev, Json::Value val)
 }
 
 void  Server::server_add_friend(struct bufferevent* bev, Json::Value val)
-// ¿Í»§¶Ë·¢ËÍ£º{"cmd":"add", "user":"Ğ¡Ã÷", "friend":"Ğ¡»ª"};
+// å®¢æˆ·ç«¯å‘é€ï¼š{"cmd":"add", "user":"å°æ˜", "friend":"å°å"};
 {
 	Json::Value v;
 	string s;
 
 	chatdb->my_database_connect("user");
 
-	if (!chatdb->my_database_user_exist(val["friend"].asString()))   //Ìí¼ÓµÄºÃÓÑfriend²»´æÔÚ
+	if (!chatdb->my_database_user_exist(val["friend"].asString()))   //æ·»åŠ çš„å¥½å‹friendä¸å­˜åœ¨
 	{
 		v["cmd"] = "add_reply";
-		v["result"] = "user_not_exist"; // »Ø¸´¿Í»§¶Ë
+		v["result"] = "user_not_exist"; // å›å¤å®¢æˆ·ç«¯
 
 		s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return; // ÖÁ´Ë£¬Ìí¼ÓºÃÓÑ²Ù×÷½áÊø
+		return; // è‡³æ­¤ï¼Œæ·»åŠ å¥½å‹æ“ä½œç»“æŸ
 	}
 	
 
-	if (chatdb->my_database_is_friend(val["user"].asString(), val["friend"].asString())) // ÊÇ·ñÒÑ¾­ÊÇºÃÓÑ
+	if (chatdb->my_database_is_friend(val["user"].asString(), val["friend"].asString())) // æ˜¯å¦å·²ç»æ˜¯å¥½å‹
 	{
 		v.clear();
 		v["cmd"] = "add_reply";
-		v["result"] = "already_friend"; // »Ø¸´¿Í»§¶Ë
+		v["result"] = "already_friend"; // å›å¤å®¢æˆ·ç«¯
 
 		s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -306,12 +309,12 @@ void  Server::server_add_friend(struct bufferevent* bev, Json::Value val)
 		return;
 	}
 
-	//1ĞŞ¸ÄË«·½µÄÊı¾İ¿â,´Ë´¦Ã»ÓĞÊµÏÖºÃÓÑÑéÖ¤µÄ¹¦ÄÜ£¬ºóÆÚĞèÒªÓÅ»¯²¹³ä
+	//1ä¿®æ”¹åŒæ–¹çš„æ•°æ®åº“,æ­¤å¤„æ²¡æœ‰å®ç°å¥½å‹éªŒè¯çš„åŠŸèƒ½ï¼ŒåæœŸéœ€è¦ä¼˜åŒ–è¡¥å……
 	chatdb->my_database_add_new_friend(val["user"].asString(), val["friend"].asString());
 	chatdb->my_database_add_new_friend(val["friend"].asString(), val["user"].asString());
 
 
-	// 2»Ø¸´Ö´ĞĞÌí¼ÓºÃÓÑµÄÓÃ»§£¬Ìí¼ÓºÃÓÑ³É¹¦
+	// 2å›å¤æ‰§è¡Œæ·»åŠ å¥½å‹çš„ç”¨æˆ·ï¼Œæ·»åŠ å¥½å‹æˆåŠŸ
 	v.clear();
 	v["cmd"] = "add_reply";
 	v["result"] = "success";
@@ -323,7 +326,7 @@ void  Server::server_add_friend(struct bufferevent* bev, Json::Value val)
 		cout << "bufferevent_write" << endl;
 	}
 
-	// 3±éÀúÔÚÏßÓÃ»§£¬ÅĞ¶ÏÌí¼ÓµÄºÃÓÑÊÇ·ñ´æÔÚ£¬Èô´æÔÚ£¬»Ø¸´ËüµÄbev£¬ÄãÒÑ¾­±»Ö´ĞĞÌí¼ÓºÃÓÑÃüÁîµÄÓÃ»§Ğ¡Ã÷£¬Ìí¼ÓÎªºÃÓÑ
+	// 3éå†åœ¨çº¿ç”¨æˆ·ï¼Œåˆ¤æ–­æ·»åŠ çš„å¥½å‹æ˜¯å¦å­˜åœ¨ï¼Œè‹¥å­˜åœ¨ï¼Œå›å¤å®ƒçš„bevï¼Œä½ å·²ç»è¢«æ‰§è¡Œæ·»åŠ å¥½å‹å‘½ä»¤çš„ç”¨æˆ·å°æ˜ï¼Œæ·»åŠ ä¸ºå¥½å‹
 	for (list<User>::iterator it = chatlist->online_user->begin();
 		it != chatlist->online_user->end(); it++)
 	{
@@ -348,12 +351,12 @@ void Server::server_create_group(struct bufferevent* bev, Json::Value val)
 {
 	chatdb->my_database_connect("chatgroup");
 
-	//ÅĞ¶ÏÈºÊÇ·ñÒÑ¾­´æÔÚ
+	//åˆ¤æ–­ç¾¤æ˜¯å¦å·²ç»å­˜åœ¨
 	if (chatdb->my_database_group_exist(val["group"].asString()))
 	{
 		Json::Value v;
 		v["cmd"] = "create_group_reply";
-		v["result"] = "group_exist"; // ÒÑ¾­´æÔÚ
+		v["result"] = "group_exist"; // å·²ç»å­˜åœ¨
 
 		string s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -363,17 +366,17 @@ void Server::server_create_group(struct bufferevent* bev, Json::Value val)
 		return;
 	}
 
-	//°ÑÈºĞÅÏ¢Ğ´ÈëÊı¾İ¿â
+	//æŠŠç¾¤ä¿¡æ¯å†™å…¥æ•°æ®åº“
 	chatdb->my_database_add_new_group(val["group"].asString(), val["user"].asString());
 	chatdb->my_database_disconnect();
 
 	chatdb->my_database_connect("user");
-	//ÔÚ`user`ÖĞ£¬ĞŞ¸Ä´´½¨¸ÃÈºÁÄÓÃ»§µÄÈºÁÄ×Ö·û´®
+	//åœ¨`user`ä¸­ï¼Œä¿®æ”¹åˆ›å»ºè¯¥ç¾¤èŠç”¨æˆ·çš„ç¾¤èŠå­—ç¬¦ä¸²
 	chatdb->my_database_user_add_group(val["user"].asString(), val["group"].asString());
-	// ½«ĞÂ½¨ÈºÁÄ£¨°üÀ¨ÈºÃûºÍÈº³ÉÔ±¼´ÈºÖ÷£©¼ÓÈëµ½ÈºĞÅÏ¢Á´±íÖĞ
+	// å°†æ–°å»ºç¾¤èŠï¼ˆåŒ…æ‹¬ç¾¤åå’Œç¾¤æˆå‘˜å³ç¾¤ä¸»ï¼‰åŠ å…¥åˆ°ç¾¤ä¿¡æ¯é“¾è¡¨ä¸­
 	chatlist->info_add_new_group(val["group"].asString(), val["user"].asString());
 
-	// »Ø¸´¿Í»§¶ËÓÃ»§£¬ÈºÁÄ´´½¨³É¹¦
+	// å›å¤å®¢æˆ·ç«¯ç”¨æˆ·ï¼Œç¾¤èŠåˆ›å»ºæˆåŠŸ
 	Json::Value value;
 	value["cmd"] = "create_group_reply";
 	value["result"] = "success";
@@ -386,54 +389,54 @@ void Server::server_create_group(struct bufferevent* bev, Json::Value val)
 	}
 }
 
-// ÓÃ»§Ìí¼ÓÈºÁÄ
+// ç”¨æˆ·æ·»åŠ ç¾¤èŠ
 void Server::server_add_group(struct bufferevent* bev, Json::Value val)
 {
-	//ÅĞ¶ÏÈºÊÇ·ñ´æÔÚ
+	//åˆ¤æ–­ç¾¤æ˜¯å¦å­˜åœ¨
 	if (!chatlist->info_group_exist(val["group"].asString()))
 	{
 		Json::Value v;
 		v["cmd"] = "add_group_reply";
-		v["result"] = "group_not_exist"; // »Ø¸´¿Í»§¶ËÓÃ»§£¬ÄãÒªÌí¼ÓµÄÈºÁÄ²»´æÔÚ
+		v["result"] = "group_not_exist"; // å›å¤å®¢æˆ·ç«¯ç”¨æˆ·ï¼Œä½ è¦æ·»åŠ çš„ç¾¤èŠä¸å­˜åœ¨
 
 		string s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return; // ½áÊø
+		return; // ç»“æŸ
 	}
 
-	//ÅĞ¶ÏÓÃ»§ÊÇ·ñÒÑ¾­ÔÚ¸ÃÈºÁÄÀï£¬´ËÊ±Ê¹ÓÃÈºÁÄĞÅÏ¢Á´±í£¬·ÃÎÊËÙ¶ÈÏà±ÈÓÚÊı¾İ¿â¸ü¿ì
+	//åˆ¤æ–­ç”¨æˆ·æ˜¯å¦å·²ç»åœ¨è¯¥ç¾¤èŠé‡Œï¼Œæ­¤æ—¶ä½¿ç”¨ç¾¤èŠä¿¡æ¯é“¾è¡¨ï¼Œè®¿é—®é€Ÿåº¦ç›¸æ¯”äºæ•°æ®åº“æ›´å¿«
 	if (chatlist->info_user_in_group(val["group"].asString(), val["user"].asString()))
 	{
 		Json::Value v;
 		v["cmd"] = "add_group_reply";
-		v["result"] = "user_in_group"; // »Ø¸´¿Í»§¶ËÓÃ»§£¬ÄãÒÑ¾­´æÔÚÓÚ¸ÃÈºÁÄÖĞ
+		v["result"] = "user_in_group"; // å›å¤å®¢æˆ·ç«¯ç”¨æˆ·ï¼Œä½ å·²ç»å­˜åœ¨äºè¯¥ç¾¤èŠä¸­
 
 		string s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return; // ½áÊø
+		return; // ç»“æŸ
 	}
 
-	//ĞŞ¸ÄÊı¾İ¿â£¨ÓÃ»§±í Èº±í£©
+	//ä¿®æ”¹æ•°æ®åº“ï¼ˆç”¨æˆ·è¡¨ ç¾¤è¡¨ï¼‰
 	chatdb->my_database_connect("user");
-	chatdb->my_database_user_add_group(val["user"].asString(), val["group"].asString());-
+	chatdb->my_database_user_add_group(val["user"].asString(), val["group"].asString());
 	chatdb->my_database_disconnect();
 
 	chatdb->my_database_connect("chatgroup");
 	chatdb->my_database_group_add_user(val["group"].asString(), val["user"].asString());
 	chatdb->my_database_disconnect();
 
-	//ĞŞ¸ÄÈºÁÄĞÅÏ¢Á´±í£¬½«¸ÃÓÃ»§¼ÓÈëµ½¸ÃÈºÁÄ½ÚµãµÄÈº³ÉÔ±Á´±íÖĞ
+	//ä¿®æ”¹ç¾¤èŠä¿¡æ¯é“¾è¡¨ï¼Œå°†è¯¥ç”¨æˆ·åŠ å…¥åˆ°è¯¥ç¾¤èŠèŠ‚ç‚¹çš„ç¾¤æˆå‘˜é“¾è¡¨ä¸­
 	chatlist->info_group_add_user(val["group"].asString(), val["user"].asString());
 
 	Json::Value v;
 	v["cmd"] = "add_group_reply";
-	v["result"] = "success"; // »Ø¸´¿Í»§¶ËÓÃ»§£¬Ìí¼ÓÈºÁÄ³É¹¦
+	v["result"] = "success"; // å›å¤å®¢æˆ·ç«¯ç”¨æˆ·ï¼Œæ·»åŠ ç¾¤èŠæˆåŠŸ
 	v["group"] = val["group"];
 
 	string s = Json::FastWriter().write(v);
@@ -443,12 +446,12 @@ void Server::server_add_group(struct bufferevent* bev, Json::Value val)
 	}
 }
 
-// Ë½ÁÄ
+// ç§èŠ
 void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 {
-	// Ê×ÏÈÅĞ¶ÏºÃÓÑÊÇ·ñÔÚÏß¡ª¡ª¡ª¡ª±éÀúÔÚÏßÓÃ»§Á´±í£¬»ñµÃÆä»º´æÇø¶ÔÏó£¬
+	// é¦–å…ˆåˆ¤æ–­å¥½å‹æ˜¯å¦åœ¨çº¿â€”â€”â€”â€”éå†åœ¨çº¿ç”¨æˆ·é“¾è¡¨ï¼Œè·å¾—å…¶ç¼“å­˜åŒºå¯¹è±¡ï¼Œ
 	struct bufferevent* to_bev = chatlist->info_get_friend_bev(val["user_to"].asString());
-	if (NULL == to_bev) // ËµÃ÷ºÃÓÑ²»ÔÚÏß
+	if (NULL == to_bev) // è¯´æ˜å¥½å‹ä¸åœ¨çº¿
 	{
 		Json::Value v;
 		v["cmd"] = "private_chat_reply";
@@ -459,10 +462,10 @@ void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return; // ½áÊø
+		return; // ç»“æŸ
 	}
 
-	// ½«ÓÃ»§»º´æÇø¶ÔÏóbevÖĞµÄÄÚÈİval×ª»»Îª×Ö·û´®s£¬ÔÙ×ª·¢¸øºÃÓÑµÄ»º´æÇø¶ÔÏóto_bev
+	// å°†ç”¨æˆ·ç¼“å­˜åŒºå¯¹è±¡bevä¸­çš„å†…å®¹valè½¬æ¢ä¸ºå­—ç¬¦ä¸²sï¼Œå†è½¬å‘ç»™å¥½å‹çš„ç¼“å­˜åŒºå¯¹è±¡to_bev
 	string s = Json::FastWriter().write(val);
 	if (bufferevent_write(to_bev, s.c_str(), strlen(s.c_str())) < 0)
 	{
@@ -470,7 +473,7 @@ void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 	}
 
 	Json::Value v;
-	v["cmd"] = "private_chat_reply"; // »Ø¸´·¢ËÍ·½£¬Ë½ÁÄ³É¹¦
+	v["cmd"] = "private_chat_reply"; // å›å¤å‘é€æ–¹ï¼Œç§èŠæˆåŠŸ
 	v["result"] = "success";
 
 	s = Json::FastWriter().write(v);
@@ -480,18 +483,18 @@ void Server::server_private_chat(struct bufferevent* bev, Json::Value val)
 	}
 }
 
-// ÈºÁÄ
+// ç¾¤èŠ
 void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 {
-	// ±éÀúÈºÁÄĞÅÏ¢Á´±íÕÒµ½¸ÃÈºÁÄ
+	// éå†ç¾¤èŠä¿¡æ¯é“¾è¡¨æ‰¾åˆ°è¯¥ç¾¤èŠ
 	for (list<Group>::iterator it = chatlist->group_info->begin(); it != chatlist->group_info->end(); it++)
 	{
 		if (val["group"].asString() == it->name)
 		{
-			// ±éÀú¸ÃÈºÁÄµÄÈº³ÉÔ±Á´±í£¨°üÀ¨×Ô¼º£©
+			// éå†è¯¥ç¾¤èŠçš„ç¾¤æˆå‘˜é“¾è¡¨ï¼ˆåŒ…æ‹¬è‡ªå·±ï¼‰
 			for (list<GroupUser>::iterator i = it->l->begin(); i != it->l->end(); i++)
 			{
-				// »ñÈ¡ÔÚÏßÈº³ÉÔ±µÄ»º´æÇø¶ÔÏó£¬×ª·¢·¢ËÍ·½µÄbev
+				// è·å–åœ¨çº¿ç¾¤æˆå‘˜çš„ç¼“å­˜åŒºå¯¹è±¡ï¼Œè½¬å‘å‘é€æ–¹çš„bev
 				struct bufferevent* to_bev = chatlist->info_get_friend_bev(i->name);
 				if (to_bev != NULL)
 				{
@@ -502,13 +505,13 @@ void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 					}
 				}
 			}
-			break; // ÕÒµ½¸ÃÈºÁÄ£¬¾ÍÍ£Ö¹±éÀú
+			break; // æ‰¾åˆ°è¯¥ç¾¤èŠï¼Œå°±åœæ­¢éå†
 		}
 	}
 
 	Json::Value v;
 	v["cmd"] = "group_chat_reply";
-	v["result"] = "success"; // »Ø¸´·¢ËÍ·½ÓÃ»§£¬ÈºÁÄ·¢ËÍ³É¹¦
+	v["result"] = "success"; // å›å¤å‘é€æ–¹ç”¨æˆ·ï¼Œç¾¤èŠå‘é€æˆåŠŸ
 
 	string s = Json::FastWriter().write(v);
 	if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -517,7 +520,7 @@ void Server::server_group_chat(struct bufferevent* bev, Json::Value val)
 	}
 }
 
-// »ñÈ¡Ä³¸öÈºÁÄµÄËùÓĞ³ÉÔ±£¬²¢·µ»Ø¸ø¸ÃÈºÁÄ
+// è·å–æŸä¸ªç¾¤èŠçš„æ‰€æœ‰æˆå‘˜ï¼Œå¹¶è¿”å›ç»™è¯¥ç¾¤èŠ
 void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 {
 	string member = chatlist->info_get_group_member(val["group"].asString());
@@ -525,7 +528,7 @@ void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 	Json::Value v;
 	v["cmd"] = "get_group_member_reply";
 	v["member"] = member;
-	v["group"] = val["group"];// ·µ»Ø¸ø¸ÃÈºÁÄ
+	v["group"] = val["group"];// è¿”å›ç»™è¯¥ç¾¤èŠ
 
 	string s = Json::FastWriter().write(v);
 	if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
@@ -535,30 +538,30 @@ void Server::server_get_group_member(struct bufferevent* bev, Json::Value val)
 
 }
 
-// ÓÃ»§ÏÂÏß¡ª¡ª¡ª¡ªÁ´±íµÄºÃ´¦Ö®Ò»£¬·½±ã´¦ÀíÔÚÈÎÒâÎ»ÖÃÉ¾³ı²Ù×÷
+// ç”¨æˆ·ä¸‹çº¿â€”â€”â€”â€”é“¾è¡¨çš„å¥½å¤„ä¹‹ä¸€ï¼Œæ–¹ä¾¿å¤„ç†åœ¨ä»»æ„ä½ç½®åˆ é™¤æ“ä½œ
 void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 {
-	//´ÓÓÃ»§ÔÚÏßÁ´±íÖĞÉ¾³ı¸ÃÓÃ»§
+	//ä»ç”¨æˆ·åœ¨çº¿é“¾è¡¨ä¸­åˆ é™¤è¯¥ç”¨æˆ·
 	for (list<User>::iterator it = chatlist->online_user->begin();
 		it != chatlist->online_user->end(); it++)
 	{
 		if (it->name == val["user"].asString())
 		{
-			chatlist->online_user->erase(it); // ÔÚÏßÓÃ»§Á´±í£¬É¾³ı¸ÃÓÃ»§µÄ½Úµã
+			chatlist->online_user->erase(it); // åœ¨çº¿ç”¨æˆ·é“¾è¡¨ï¼Œåˆ é™¤è¯¥ç”¨æˆ·çš„èŠ‚ç‚¹
 			break;
 		}
 	}
 
 	chatdb->my_database_connect("user");
 
-	//»ñÈ¡ºÃÓÑ£¬ÈºÁÄÁĞ±í²¢ÇÒ·µ»Ø¸øfriend_list, group_list£¬²ÎÊıÊÇÒıÓÃ·½Ê½´«µİ
+	//è·å–å¥½å‹ï¼Œç¾¤èŠåˆ—è¡¨å¹¶ä¸”è¿”å›ç»™friend_list, group_listï¼Œå‚æ•°æ˜¯å¼•ç”¨æ–¹å¼ä¼ é€’
 	string friend_list, group_list;
 	string name, s;
 	Json::Value v;
 	
 	chatdb->my_database_get_friend_group(val["user"].asString(), friend_list, group_list);
 
-	// ÏÈ»ñµÃÆäËùÓĞºÃÓÑ(Í¨¹ı'|'½ØÈ¡ºÃÓÑÁĞ±í×Ö·û´®µÃµ½Ä³¸öºÃÓÑ)£¬ÓëÔÚÏßºÃÓÑÁ´±í¶Ô±È£¬Ö»ÏòÔÚÏßµÄºÃÓÑ·¢ËÍ¸ÃÓÃ»§µÄÏÂÏßÌáĞÑ
+	// å…ˆè·å¾—å…¶æ‰€æœ‰å¥½å‹(é€šè¿‡'|'æˆªå–å¥½å‹åˆ—è¡¨å­—ç¬¦ä¸²å¾—åˆ°æŸä¸ªå¥½å‹)ï¼Œä¸åœ¨çº¿å¥½å‹é“¾è¡¨å¯¹æ¯”ï¼Œåªå‘åœ¨çº¿çš„å¥½å‹å‘é€è¯¥ç”¨æˆ·çš„ä¸‹çº¿æé†’
 	int start = 0, end = 0, flag = 1;
 	while (flag)
 	{
@@ -594,70 +597,70 @@ void Server::server_user_offline(struct bufferevent* bev, Json::Value val)
 	chatdb->my_database_disconnect();
 }
 
-// ·¢ËÍÎÄ¼ş
+// å‘é€æ–‡ä»¶
 void Server::server_send_file(struct bufferevent* bev, Json::Value val)
 {
 	Json::Value v;
 	string s;
 
-	//ÅĞ¶Ï¶Ô·½£¨ÎÄ¼ş½ÓÊÕ·½£©ÊÇ·ñÔÚÏß
+	//åˆ¤æ–­å¯¹æ–¹ï¼ˆæ–‡ä»¶æ¥æ”¶æ–¹ï¼‰æ˜¯å¦åœ¨çº¿
 	struct bufferevent* to_bev = chatlist->info_get_friend_bev(val["to_user"].asString());
 	if (NULL == to_bev)
 	{
 		v["cmd"] = "send_file_reply";
-		v["result"] = "offline"; // »Ø¸´·¢ËÍ·½£¬½ÓÊÕ·½²»ÔÚÏß
+		v["result"] = "offline"; // å›å¤å‘é€æ–¹ï¼Œæ¥æ”¶æ–¹ä¸åœ¨çº¿
 		s = Json::FastWriter().write(v);
 		if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0)
 		{
 			cout << "bufferevent_write" << endl;
 		}
-		return; // ½áÊø
+		return; // ç»“æŸ
 	}
 
-	//Æô¶¯ĞÂÏß³Ì£¬´´½¨ÎÄ¼ş·şÎñÆ÷£¬´¦Àí¸ÃÎÄ¼ş´«ÊäÈÎÎñ£¨²»Ó°ÏìÁÄÌìµÈ¹¦ÄÜ£©
-	int port = 8080; // portÎª¶Ë¿ÚºÅ£¬Êµ¼ÊÉÏÓ¦¸ÃËæ»úÉú³ÉÒ»¸öÏµÍ³ÖĞÎ´Ê¹ÓÃµÄport£¬µ±¶à¶Ô¿Í»§¶ËÖ®¼ä´«ÊäÊı¾İµÄÊ±ºò»á´´½¨¶à¸öÎÄ¼ş·şÎñÆ÷£¬ÏÔÈ»²»ÄÜ¹²ÓÃÒ»¸ö¶Ë¿ÚºÅ£¬»á·¢Éú³åÍ»£¬´Ë´¦½ö½öÊÇÎªÁË¼ò»¯
-	int from_fd = 0, to_fd = 0; // ÒıÓÃ·½Ê½»ñµÃ·¢ËÍ·½¿Í»§¶ËºÍ½ÓÊÕ·½¿Í»§¶ËÓëÎÄ¼ş·şÎñÆ÷Ö®¼äµÄfd£¬²»Í¬ÓÚ¿Í»§¶ËÓëÁÄÌì·şÎñÆ÷Ö®¼äµÄfd£¬ºóÃæ½«»á¸ù¾İÎÄ¼ş·şÎñÆ÷µÄfdÊÇ·ñ±»ĞŞ¸Ä£¬ÅĞ¶ÏÊÇ·ñÓĞ¿Í»§¶ËÏòÆä·¢ÆğÁ¬½Ó
-	thread send_file_thread(send_file_handler, val["length"].asInt(), port, &from_fd, &to_fd); // lengthÎªÎÄ¼ş´óĞ¡,asInt×ª»»ÎªÕûĞÎ
-	send_file_thread.detach(); // ´«ÊäÍê³Éºó£¬Ïß³Ì·ÖÀë£¬ÊÍ·Å×ÊÔ´
+	//å¯åŠ¨æ–°çº¿ç¨‹ï¼Œåˆ›å»ºæ–‡ä»¶æœåŠ¡å™¨ï¼Œå¤„ç†è¯¥æ–‡ä»¶ä¼ è¾“ä»»åŠ¡ï¼ˆä¸å½±å“èŠå¤©ç­‰åŠŸèƒ½ï¼‰
+	int port = 8080; // portä¸ºç«¯å£å·ï¼Œå®é™…ä¸Šåº”è¯¥éšæœºç”Ÿæˆä¸€ä¸ªç³»ç»Ÿä¸­æœªä½¿ç”¨çš„portï¼Œå½“å¤šå¯¹å®¢æˆ·ç«¯ä¹‹é—´ä¼ è¾“æ•°æ®çš„æ—¶å€™ä¼šåˆ›å»ºå¤šä¸ªæ–‡ä»¶æœåŠ¡å™¨ï¼Œæ˜¾ç„¶ä¸èƒ½å…±ç”¨ä¸€ä¸ªç«¯å£å·ï¼Œä¼šå‘ç”Ÿå†²çªï¼Œæ­¤å¤„ä»…ä»…æ˜¯ä¸ºäº†ç®€åŒ–
+	int from_fd = 0, to_fd = 0; // å¼•ç”¨æ–¹å¼è·å¾—å‘é€æ–¹å®¢æˆ·ç«¯å’Œæ¥æ”¶æ–¹å®¢æˆ·ç«¯ä¸æ–‡ä»¶æœåŠ¡å™¨ä¹‹é—´çš„fdï¼Œä¸åŒäºå®¢æˆ·ç«¯ä¸èŠå¤©æœåŠ¡å™¨ä¹‹é—´çš„fdï¼Œåé¢å°†ä¼šæ ¹æ®æ–‡ä»¶æœåŠ¡å™¨çš„fdæ˜¯å¦è¢«ä¿®æ”¹ï¼Œåˆ¤æ–­æ˜¯å¦æœ‰å®¢æˆ·ç«¯å‘å…¶å‘èµ·è¿æ¥
+	thread send_file_thread(send_file_handler, val["length"].asInt(), port, &from_fd, &to_fd); // lengthä¸ºæ–‡ä»¶å¤§å°,asIntè½¬æ¢ä¸ºæ•´å½¢
+	send_file_thread.detach(); // ä¼ è¾“å®Œæˆåï¼Œçº¿ç¨‹åˆ†ç¦»ï¼Œé‡Šæ”¾èµ„æº
 
-	// ½«ÎÄ¼ş·şÎñÆ÷¶Ë¿ÚºÅ·µ»Ø¸ø·¢ËÍ¿Í»§¶Ë£¬·¢ËÍ¿Í»§¶Ë¸ù¾İportÏòÎÄ¼ş·şÎñÆ÷·¢ÆğÁ¬½Ó£¬
+	// å°†æ–‡ä»¶æœåŠ¡å™¨ç«¯å£å·è¿”å›ç»™å‘é€å®¢æˆ·ç«¯ï¼Œå‘é€å®¢æˆ·ç«¯æ ¹æ®portå‘æ–‡ä»¶æœåŠ¡å™¨å‘èµ·è¿æ¥ï¼Œ
 	v.clear();
 	v["cmd"] = "send_file_port_reply";
 	v["port"] = port; // 
-	v["filename"] = val["filename"]; // ±ãÓÚqt¿Í»§¶ËÊµÏÖÎÄ¼ş²Ù×÷
+	v["filename"] = val["filename"]; // ä¾¿äºqtå®¢æˆ·ç«¯å®ç°æ–‡ä»¶æ“ä½œ
 	v["length"] = val["length"];
 	s = Json::FastWriter().write(v);
 
-	//*********************´Ë´¦ÊÓÆµÖĞ»¹Î´½²µ½
-	////if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // bufferevent_writeÓĞ·¢ËÍÈİÁ¿4KBÏŞÖÆ£¬ÇÒÈç¹û²»Âú×ãjsonµÄ×Ö¶Î·¢ËÍ£¬·şÎñÆ÷Á¬Ğø¶ÁÈ¡£¬ÈİÒ×³öÏÖ·Ö°ü¡¢Õ³°üÎÊÌâ
-	if (send(bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0) // sendº¯Êı£¬ÏòÎÄ¼ş·şÎñÆ÷·¢ËÍÎÄ¼şÊı¾İ£¬·¢ËÍÊı¾İÎŞÈİÁ¿ÏŞÖÆ£¬½«ÎÄ¼şµ±×÷×Ö·û´®Ö±½Ó·¢ËÍ£¨¶ø²»ÊÇ·â×°json¸ñÊ½£©
+	//*********************æ­¤å¤„è§†é¢‘ä¸­è¿˜æœªè®²åˆ°
+	////if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // bufferevent_writeæœ‰å‘é€å®¹é‡4KBé™åˆ¶ï¼Œä¸”å¦‚æœä¸æ»¡è¶³jsonçš„å­—æ®µå‘é€ï¼ŒæœåŠ¡å™¨è¿ç»­è¯»å–ï¼Œå®¹æ˜“å‡ºç°åˆ†åŒ…ã€ç²˜åŒ…é—®é¢˜
+	if (send(bev->ev_read.ev_fd, s.c_str(), strlen(s.c_str()), 0) < 0) // sendå‡½æ•°ï¼Œå‘æ–‡ä»¶æœåŠ¡å™¨å‘é€æ–‡ä»¶æ•°æ®ï¼Œå‘é€æ•°æ®æ— å®¹é‡é™åˆ¶ï¼Œå°†æ–‡ä»¶å½“ä½œå­—ç¬¦ä¸²ç›´æ¥å‘é€ï¼ˆè€Œä¸æ˜¯å°è£…jsonæ ¼å¼ï¼‰
 	{
 		cout << "bufferevent_write" << endl;
 	}
 
-	int count = 0; // µÈ´ıÊ±¼ä
-	while (from_fd <= 0) // ÏÈÅĞ¶Ï·¢ËÍ¿Í»§¶ËÁ¬½ÓÎÄ¼ş·şÎñÆ÷ÊÇ·ñ³É¹¦
+	int count = 0; // ç­‰å¾…æ—¶é—´
+	while (from_fd <= 0) // å…ˆåˆ¤æ–­å‘é€å®¢æˆ·ç«¯è¿æ¥æ–‡ä»¶æœåŠ¡å™¨æ˜¯å¦æˆåŠŸ
 	{
-		// Èç¹ûÄ³Ò»Ê±¿Ì£¬·¢ËÍ¿Í»§¶ËÁ¬½ÓÉÏÁËÎÄ¼ş·şÎñÆ÷£¬¼´send_file_handlerÖĞµÄaccept()Ö´ĞĞ³É¹¦£¬Ôòfrom_fd±»ĞŞ¸Ä£¬ÍË³öwhile
+		// å¦‚æœæŸä¸€æ—¶åˆ»ï¼Œå‘é€å®¢æˆ·ç«¯è¿æ¥ä¸Šäº†æ–‡ä»¶æœåŠ¡å™¨ï¼Œå³send_file_handlerä¸­çš„accept()æ‰§è¡ŒæˆåŠŸï¼Œåˆ™from_fdè¢«ä¿®æ”¹ï¼Œé€€å‡ºwhile
 		count++; 
-		usleep(100000); // ĞèÒª°üº¬Í·ÎÄ¼ş¡ª¡ªusleep() Óësleep()ÀàËÆ,ÓÃÓÚÑÓ³Ù¹ÒÆğ½ø³Ì¡£½ø³Ì±»¹ÒÆğ·Åµ½reday queue,ÉèÖÃÃ¿´Î¹ÒÆğ100000Î¢Ãë = 100ºÁÃë
-		if (count == 100) // 100 * 100 = 10000ºÁÃë = 10Ãë£¬¼´µÈ´ı10ÃëÖ®ºó£¬from_fdÈÔÈ»<=0£¬ËµÃ÷ÈÔÎ´Á¬½Ó³É¹¦£¬ÅĞ¶¨ÎªÁ¬½Ó³¬Ê±£¬·µ»Ø·¢ËÍ¿Í»§¶ËÁ¬½ÓÎÄ¼ş·şÎñÆ÷³¬Ê±
+		usleep(100000); // éœ€è¦åŒ…å«å¤´æ–‡ä»¶â€”â€”usleep() ä¸sleep()ç±»ä¼¼,ç”¨äºå»¶è¿ŸæŒ‚èµ·è¿›ç¨‹ã€‚è¿›ç¨‹è¢«æŒ‚èµ·æ”¾åˆ°reday queue,è®¾ç½®æ¯æ¬¡æŒ‚èµ·100000å¾®ç§’ = 100æ¯«ç§’
+		if (count == 100) // 100 * 100 = 10000æ¯«ç§’ = 10ç§’ï¼Œå³ç­‰å¾…10ç§’ä¹‹åï¼Œfrom_fdä»ç„¶<=0ï¼Œè¯´æ˜ä»æœªè¿æ¥æˆåŠŸï¼Œåˆ¤å®šä¸ºè¿æ¥è¶…æ—¶ï¼Œè¿”å›å‘é€å®¢æˆ·ç«¯è¿æ¥æ–‡ä»¶æœåŠ¡å™¨è¶…æ—¶
 		{
-			pthread_cancel(send_file_thread.native_handle());   //È¡ÏûÎÄ¼ş·şÎñÆ÷ËùÔÚµÄÏß³Ì£¬native_handle()º¯Êı¡ª¡ª¡ª¡ª»ñµÃÏß³ÌºÅ
+			pthread_cancel(send_file_thread.native_handle());   //å–æ¶ˆæ–‡ä»¶æœåŠ¡å™¨æ‰€åœ¨çš„çº¿ç¨‹ï¼Œnative_handle()å‡½æ•°â€”â€”â€”â€”è·å¾—çº¿ç¨‹å·
 			v.clear();
 			v["cmd"] = "send_file_reply";
-			v["result"] = "timeout"; // Á¬½ÓÎÄ¼ş·şÎñÆ÷³¬Ê±
+			v["result"] = "timeout"; // è¿æ¥æ–‡ä»¶æœåŠ¡å™¨è¶…æ—¶
 			s = Json::FastWriter().write(v);
 			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // bev
 			{
 				cout << "bufferevent_write" << endl;
 			}
-			return; // ½áÊø
+			return; // ç»“æŸ
 		}
 	}
-	/*ÖÁ´Ë£¬·¢ËÍ¿Í»§¶ËÁ¬½Ó·şÎñÆ÷³É¹¦£¬½ÓÏÂÀ´ÔÙÅĞ¶Ï½ÓÊÕ¿Í»§¶ËÊÇ·ñÓëÎÄ¼ş·şÎñÆ÷Á¬½Ó³É¹¦ */
+	/*è‡³æ­¤ï¼Œå‘é€å®¢æˆ·ç«¯è¿æ¥æœåŠ¡å™¨æˆåŠŸï¼Œæ¥ä¸‹æ¥å†åˆ¤æ–­æ¥æ”¶å®¢æˆ·ç«¯æ˜¯å¦ä¸æ–‡ä»¶æœåŠ¡å™¨è¿æ¥æˆåŠŸ */
 
-	//½«ÎÄ¼ş·şÎñÆ÷¶Ë¿ÚºÅ£¬·µ»Ø¸ø½ÓÊÕ¿Í»§¶Ë
+	//å°†æ–‡ä»¶æœåŠ¡å™¨ç«¯å£å·ï¼Œè¿”å›ç»™æ¥æ”¶å®¢æˆ·ç«¯
 	v.clear();
 	v["cmd"] = "recv_file_port_reply";
 	v["port"] = port;
@@ -672,43 +675,43 @@ void Server::server_send_file(struct bufferevent* bev, Json::Value val)
 	}
 
 	count = 0;
-	while (to_fd <= 0) // ÅĞ¶Ï½ÓÊÕ¿Í»§¶ËÁ¬½ÓÎÄ¼ş·şÎñÆ÷ÊÇ·ñ³É¹¦£¬Í¬ÉÏ
+	while (to_fd <= 0) // åˆ¤æ–­æ¥æ”¶å®¢æˆ·ç«¯è¿æ¥æ–‡ä»¶æœåŠ¡å™¨æ˜¯å¦æˆåŠŸï¼ŒåŒä¸Š
 	{
-		// Èç¹ûÄ³Ò»Ê±¿Ì£¬½ÓÊÕ¿Í»§¶ËÁ¬½ÓÉÏÁËÎÄ¼ş·şÎñÆ÷£¬¼´send_file_handlerÖĞµÄaccept()Ö´ĞĞ³É¹¦£¬Ôòto_fd±»ĞŞ¸Ä£¬ÍË³öwhile
+		// å¦‚æœæŸä¸€æ—¶åˆ»ï¼Œæ¥æ”¶å®¢æˆ·ç«¯è¿æ¥ä¸Šäº†æ–‡ä»¶æœåŠ¡å™¨ï¼Œå³send_file_handlerä¸­çš„accept()æ‰§è¡ŒæˆåŠŸï¼Œåˆ™to_fdè¢«ä¿®æ”¹ï¼Œé€€å‡ºwhile
 		count++;
 		usleep(100000);
 		if (count == 100)
 		{
-			pthread_cancel(send_file_thread.native_handle());   //È¡ÏûÏß³Ì
+			pthread_cancel(send_file_thread.native_handle());   //å–æ¶ˆçº¿ç¨‹
 			v.clear();
 			v["cmd"] = "send_file_reply";
 			v["result"] = "timeout";
 			s = Json::FastWriter().write(v);
 
-			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // Ò²ÊÇ»Ø¸´·¢ËÍ¿Í»§¶Ë£¬ÒòÎªÊÇÎÄ¼ş·şÎñÆ÷·Ö±ğÓëÁ½¸ö¿Í»§¶ËÁ¬½Ó£¬²»¹ÜÄÄ¸öÁ¬½Ó³¬Ê±£¬¶¼ÊÇ·¢ËÍÎÄ¼şÊ§°Ü£¬Óë½ÓÊÕ¿Í»§¶ËÃ»ÓĞ¹ØÏµ£¬Ö»ÓÃ»Ø¸´·¢ËÍ¿Í»§¶ËÊ§°ÜµÄÔ­ÒòÊÇ£ºÁ¬½ÓÎÄ¼ş·şÎñÆ÷³¬Ê±¼´¿É
+			if (bufferevent_write(bev, s.c_str(), strlen(s.c_str())) < 0) // ä¹Ÿæ˜¯å›å¤å‘é€å®¢æˆ·ç«¯ï¼Œå› ä¸ºæ˜¯æ–‡ä»¶æœåŠ¡å™¨åˆ†åˆ«ä¸ä¸¤ä¸ªå®¢æˆ·ç«¯è¿æ¥ï¼Œä¸ç®¡å“ªä¸ªè¿æ¥è¶…æ—¶ï¼Œéƒ½æ˜¯å‘é€æ–‡ä»¶å¤±è´¥ï¼Œä¸æ¥æ”¶å®¢æˆ·ç«¯æ²¡æœ‰å…³ç³»ï¼Œåªç”¨å›å¤å‘é€å®¢æˆ·ç«¯å¤±è´¥çš„åŸå› æ˜¯ï¼šè¿æ¥æ–‡ä»¶æœåŠ¡å™¨è¶…æ—¶å³å¯
 			{
 				cout << "bufferevent_write" << endl;
 			}
 		}
 	}
-	/*ÖÁ´Ë£¬½ÓÊÕ¿Í»§¶ËÒ²ÓëÎÄ¼ş·şÎñÆ÷Á¬½Ó³É¹¦£¬½ÓÏÂÀ´ÎÄ¼ş·şÎñÆ÷Ò»±ß´Ó*f_fd½ÓÊÕ£¬Ò»±ßÏò*t_fd·¢ËÍ£¬¼´Ö´ĞĞÎÄ¼ş´«Êä¹¤×÷ */
+	/*è‡³æ­¤ï¼Œæ¥æ”¶å®¢æˆ·ç«¯ä¹Ÿä¸æ–‡ä»¶æœåŠ¡å™¨è¿æ¥æˆåŠŸï¼Œæ¥ä¸‹æ¥æ–‡ä»¶æœåŠ¡å™¨ä¸€è¾¹ä»*f_fdæ¥æ”¶ï¼Œä¸€è¾¹å‘*t_fdå‘é€ï¼Œå³æ‰§è¡Œæ–‡ä»¶ä¼ è¾“å·¥ä½œ */
 }
 
-// ÎÄ¼ş´«Êä·şÎñÆ÷
+// æ–‡ä»¶ä¼ è¾“æœåŠ¡å™¨
 void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 {
 	/*
-	SocketÔ­Àí½²½â¡ª¡ª¡ª¡ª·Ç³£ºÅµÄÎÄÕÂ
+	SocketåŸç†è®²è§£â€”â€”â€”â€”éå¸¸å·çš„æ–‡ç« 
 	https://blog.csdn.net/pashanhu6402/article/details/96428887?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164214549216780269869952%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=164214549216780269869952&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-96428887.pc_search_insert_ulrmf&utm_term=socket&spm=1018.2226.3001.4187
 	*/
 
 
-	// ´´½¨Ò»¸ösocketÃèÊö·û/×Ö£¨socket descriptor£©£¬ËüÎ¨Ò»±êÊ¶Ò»¸ösocket¡£Õâ¸ösocketÃèÊö×Ö¸úÎÄ¼şÃèÊö×ÖÒ»Ñù£¬ºóĞøµÄ²Ù×÷¶¼ÓĞÓÃµ½Ëü£¬°ÑËü×÷Îª²ÎÊı£¬Í¨¹ıËüÀ´½øĞĞÒ»Ğ©¶ÁĞ´²Ù×÷
+	// åˆ›å»ºä¸€ä¸ªsocketæè¿°ç¬¦/å­—ï¼ˆsocket descriptorï¼‰ï¼Œå®ƒå”¯ä¸€æ ‡è¯†ä¸€ä¸ªsocketã€‚è¿™ä¸ªsocketæè¿°å­—è·Ÿæ–‡ä»¶æè¿°å­—ä¸€æ ·ï¼Œåç»­çš„æ“ä½œéƒ½æœ‰ç”¨åˆ°å®ƒï¼ŒæŠŠå®ƒä½œä¸ºå‚æ•°ï¼Œé€šè¿‡å®ƒæ¥è¿›è¡Œä¸€äº›è¯»å†™æ“ä½œ
 	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	/*
-		AF_INET£¬Ğ­Òé×å£¬Í¨ĞÅÖĞ±ØĞë²ÉÓÃ¶ÔÓ¦µÄµØÖ·£¬ÈçAF_INET¾ö¶¨ÁËÒªÓÃipv4µØÖ·£¨32Î»µÄ£©Óë¶Ë¿ÚºÅ£¨16Î»µÄ£©µÄ×éºÏ
-		SOCK_STREAM socketÀàĞÍ£¬tcp»ùÓÚÁ÷
-		protocolÄ¬ÈÏÎª0£¬Ğ­Òé£¬µ±protocolÎª0Ê±£¬»á×Ô¶¯Ñ¡ÔñtypeÀàĞÍ¶ÔÓ¦µÄÄ¬ÈÏĞ­Òé
+		AF_INETï¼Œåè®®æ—ï¼Œé€šä¿¡ä¸­å¿…é¡»é‡‡ç”¨å¯¹åº”çš„åœ°å€ï¼Œå¦‚AF_INETå†³å®šäº†è¦ç”¨ipv4åœ°å€ï¼ˆ32ä½çš„ï¼‰ä¸ç«¯å£å·ï¼ˆ16ä½çš„ï¼‰çš„ç»„åˆ
+		SOCK_STREAM socketç±»å‹ï¼ŒtcpåŸºäºæµ
+		protocolé»˜è®¤ä¸º0ï¼Œåè®®ï¼Œå½“protocolä¸º0æ—¶ï¼Œä¼šè‡ªåŠ¨é€‰æ‹©typeç±»å‹å¯¹åº”çš„é»˜è®¤åè®®
 	
 	*/
 	if (-1 == sockfd)
@@ -719,11 +722,11 @@ void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 	int opt = 1;
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-	// ½ÓÊÕ»º³åÇø
+	// æ¥æ”¶ç¼“å†²åŒº
 	int nRecvBuf = MAXSIZE;
 	setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (const char*)&nRecvBuf, sizeof(int));
-	//·¢ËÍ»º³åÇø
-	int nSendBuf = MAXSIZE;    //ÉèÖÃÎª1M
+	//å‘é€ç¼“å†²åŒº
+	int nSendBuf = MAXSIZE;    //è®¾ç½®ä¸º1M
 	setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (const char*)&nSendBuf, sizeof(int));
 
 	struct sockaddr_in server_addr, client_addr;
@@ -731,50 +734,50 @@ void Server::send_file_handler(int length, int port, int* f_fd, int* t_fd)
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
 	server_addr.sin_addr.s_addr = inet_addr(IP);
-	bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)); // bind()º¯Êı°ÑÒ»¸öµØÖ·×åÖĞµÄÌØ¶¨µØÖ·¸³¸øsocket
+	bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)); // bind()å‡½æ•°æŠŠä¸€ä¸ªåœ°å€æ—ä¸­çš„ç‰¹å®šåœ°å€èµ‹ç»™socket
 	listen(sockfd, 10);
 
 	/*
-	accept()º¯Êı
-	TCP¿Í»§¶ËÒÀ´Îµ÷ÓÃsocket()¡¢connect()Ö®ºó¾ÍÏëTCP·şÎñÆ÷·¢ËÍÁËÒ»¸öÁ¬½ÓÇëÇó¡£TCP·şÎñÆ÷¼àÌıµ½Õâ¸öÇëÇóÖ®ºó£¬¾Í»áµ÷ÓÃaccept()º¯ÊıÈ¡½ÓÊÕÇëÇó£¬ÕâÑùÁ¬½Ó¾Í½¨Á¢ºÃÁË¡£Ö®ºó¾Í¿ÉÒÔ¿ªÊ¼ÍøÂçI/O²Ù×÷ÁË£¬¼´ÀàÍ¬ÓÚÆÕÍ¨ÎÄ¼şµÄ¶ÁĞ´I/O²Ù×÷¡£
+	accept()å‡½æ•°
+	TCPå®¢æˆ·ç«¯ä¾æ¬¡è°ƒç”¨socket()ã€connect()ä¹‹åå°±æƒ³TCPæœåŠ¡å™¨å‘é€äº†ä¸€ä¸ªè¿æ¥è¯·æ±‚ã€‚TCPæœåŠ¡å™¨ç›‘å¬åˆ°è¿™ä¸ªè¯·æ±‚ä¹‹åï¼Œå°±ä¼šè°ƒç”¨accept()å‡½æ•°å–æ¥æ”¶è¯·æ±‚ï¼Œè¿™æ ·è¿æ¥å°±å»ºç«‹å¥½äº†ã€‚ä¹‹åå°±å¯ä»¥å¼€å§‹ç½‘ç»œI/Oæ“ä½œäº†ï¼Œå³ç±»åŒäºæ™®é€šæ–‡ä»¶çš„è¯»å†™I/Oæ“ä½œã€‚
 
 	*/
 	int len = sizeof(client_addr);
-	//½ÓÊÜ·¢ËÍ¿Í»§¶ËµÄÁ¬½ÓÇëÇó£¬Èç¹ûÁ¬½Ó³É¹¦£¬*f_fd»á±»ĞŞ¸Ä£¨´«ÈëÊ±Îª0£©£¬¿ÉÔÚserver_send_fileº¯ÊıÖĞÅĞ¶Ï·¢ËÍ¿Í»§¶ËÊÇ·ñÓë¸ÃÎÄ¼ş·şÎñÆ÷Á¬½Ó³É¹¦
-	*f_fd = accept(sockfd, (struct sockaddr*)&client_addr, (socklen_t*)&len); // (struct sockaddr*)Ç¿ÖÆÀàĞÍ×ª»»£¬&È¡µØÖ·£¬(socklen_t*)Ç¿ÖÆÀàĞÍ×ª»»£¨C²»ÓÃ£¬C++ÓÃ£©
-	//½ÓÊÜ½ÓÊÕ¿Í»§¶ËµÄÁ¬½ÓÇëÇó
+	//æ¥å—å‘é€å®¢æˆ·ç«¯çš„è¿æ¥è¯·æ±‚ï¼Œå¦‚æœè¿æ¥æˆåŠŸï¼Œ*f_fdä¼šè¢«ä¿®æ”¹ï¼ˆä¼ å…¥æ—¶ä¸º0ï¼‰ï¼Œå¯åœ¨server_send_fileå‡½æ•°ä¸­åˆ¤æ–­å‘é€å®¢æˆ·ç«¯æ˜¯å¦ä¸è¯¥æ–‡ä»¶æœåŠ¡å™¨è¿æ¥æˆåŠŸ
+	*f_fd = accept(sockfd, (struct sockaddr*)&client_addr, (socklen_t*)&len); // (struct sockaddr*)å¼ºåˆ¶ç±»å‹è½¬æ¢ï¼Œ&å–åœ°å€ï¼Œ(socklen_t*)å¼ºåˆ¶ç±»å‹è½¬æ¢ï¼ˆCä¸ç”¨ï¼ŒC++ç”¨ï¼‰
+	//æ¥å—æ¥æ”¶å®¢æˆ·ç«¯çš„è¿æ¥è¯·æ±‚
 	*t_fd = accept(sockfd, (struct sockaddr*)&client_addr, (socklen_t*)&len);
 
 
-	// ÎÄ¼ş·şÎñÆ÷Ò»±ß´Ó*f_fd½ÓÊÕ£¬Ò»±ßÏò*t_fd·¢ËÍ
-	char buf[MAXSIZE] = { 0 }; // MAXSIZE = 4096£¬Ã¿´Î´¦Àí£¨½ÓÊÕ»ò·¢ËÍ£©4096¸ö×Ö½Ú=4K 
+	// æ–‡ä»¶æœåŠ¡å™¨ä¸€è¾¹ä»*f_fdæ¥æ”¶ï¼Œä¸€è¾¹å‘*t_fdå‘é€
+	char buf[MAXSIZE] = { 0 }; // MAXSIZE = 4096ï¼Œæ¯æ¬¡å¤„ç†ï¼ˆæ¥æ”¶æˆ–å‘é€ï¼‰4096ä¸ªå­—èŠ‚=4K 
 	size_t size, sum = 0;
 	while (1) 
 	{
 		/*
 		https://blog.csdn.net/yu_yuan_1314/article/details/9766137?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522164215100316780357285801%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=164215100316780357285801&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-2-9766137.pc_search_insert_ulrmf&utm_term=recv%E5%92%8Csend&spm=1018.2226.3001.4187
-		SocketÖĞrecv()Óësend()º¯ÊıÏê½â
+		Socketä¸­recv()ä¸send()å‡½æ•°è¯¦è§£
 	    ssize_t recv(int sockfd, void *buf, size_t len, int flags);
 		ssize_t send(int sockfd, const void *buf, size_t len, int flags);
 		*/
 
-		size = recv(*f_fd, buf, MAXSIZE, 0); // Ã¿´Î½ÓÊÕ´óĞ¡£¬·ÅÔÚbuf×Ö·ûÊı×éÖĞ
-		if (size <= 0 || size > MAXSIZE) // Èç¹ûµ¥´Î½ÓÊÕÊı¾İÒì³££¬ËµÃ÷¶ÁÈ¡Íê±Ï£¬ÍË³ö¶ÁĞ´whileÑ­»·
+		size = recv(*f_fd, buf, MAXSIZE, 0); // æ¯æ¬¡æ¥æ”¶å¤§å°ï¼Œæ”¾åœ¨bufå­—ç¬¦æ•°ç»„ä¸­
+		if (size <= 0 || size > MAXSIZE) // å¦‚æœå•æ¬¡æ¥æ”¶æ•°æ®å¼‚å¸¸ï¼Œè¯´æ˜è¯»å–å®Œæ¯•ï¼Œé€€å‡ºè¯»å†™whileå¾ªç¯
 		{
 			break;
 		}
-		sum += size; // ÀÛ¼ÓÃ¿´Î¶ÁÈ¡´óĞ¡
-		send(*t_fd, buf, size, 0); // ½«Ã¿´Î½ÓÊÕµ½µÄÊµ¼Ê´óĞ¡Îªsize£¬´æ´¢ÔÚbuf×Ö·ûÊı×éÖĞµÄÊı¾İ·¢ËÍ³öÈ¥
-		if (sum >= length) // µ±Ç°´«ÊäÎÄ¼ş´óĞ¡sum >= ÎÄ¼ş±¾À´µÄ´óĞ¡£¬·¢ËÍ½áÊø£¬ÍË³öÑ­»· 
+		sum += size; // ç´¯åŠ æ¯æ¬¡è¯»å–å¤§å°
+		send(*t_fd, buf, size, 0); // å°†æ¯æ¬¡æ¥æ”¶åˆ°çš„å®é™…å¤§å°ä¸ºsizeï¼Œå­˜å‚¨åœ¨bufå­—ç¬¦æ•°ç»„ä¸­çš„æ•°æ®å‘é€å‡ºå»
+		if (sum >= length) // å½“å‰ä¼ è¾“æ–‡ä»¶å¤§å°sum >= æ–‡ä»¶æœ¬æ¥çš„å¤§å°ï¼Œå‘é€ç»“æŸï¼Œé€€å‡ºå¾ªç¯ 
 		{
 			break;
 		}
-		memset(buf, 0, MAXSIZE); // Ñ­»·ÖĞÊ¹ÓÃÊı×é£¬Ã¿´Î¶ÁÈ¡·¢ËÍ½áÊøºó£¬Çå¿Õbuf×Ö·ûÊı×é£¬±ãÓÚ´æ´¢ÏÂ´Î¶ÁÈ¡µ½µÄÊı¾İ
+		memset(buf, 0, MAXSIZE); // å¾ªç¯ä¸­ä½¿ç”¨æ•°ç»„ï¼Œæ¯æ¬¡è¯»å–å‘é€ç»“æŸåï¼Œæ¸…ç©ºbufå­—ç¬¦æ•°ç»„ï¼Œä¾¿äºå­˜å‚¨ä¸‹æ¬¡è¯»å–åˆ°çš„æ•°æ®
 	}
-	// ÖÁ´Ë£¬±¾´ÎÎÄ¼ş´«Êä¹¤×÷Íê³É£¬¹Ø±Õ·¢ËÍÓë½ÓÊÕ¿Í»§¶ËÓëÎÄ¼ş·şÎñÆ÷Ö®¼äµÄÃèÊö×Ö£¬
+	// è‡³æ­¤ï¼Œæœ¬æ¬¡æ–‡ä»¶ä¼ è¾“å·¥ä½œå®Œæˆï¼Œå…³é—­å‘é€ä¸æ¥æ”¶å®¢æˆ·ç«¯ä¸æ–‡ä»¶æœåŠ¡å™¨ä¹‹é—´çš„æè¿°å­—ï¼Œ
 	close(*f_fd); 
 	close(*t_fd);
-	close(sockfd); // ¹Ø±Õ¸ÃÎÄ¼ş·şÎñÆ÷£¨×¢Òâ£ºclose²Ù×÷Ö»ÊÇÊ¹ÏàÓ¦socketÃèÊö×ÖµÄÒıÓÃ¼ÆÊı-1£¬Ö»ÓĞµ±ÒıÓÃ¼ÆÊıÎª0µÄÊ±ºò£¬²Å»á´¥·¢TCP¿Í»§¶ËÏò·şÎñÆ÷·¢ËÍÖÕÖ¹Á¬½ÓÇëÇó£©
+	close(sockfd); // å…³é—­è¯¥æ–‡ä»¶æœåŠ¡å™¨ï¼ˆæ³¨æ„ï¼šcloseæ“ä½œåªæ˜¯ä½¿ç›¸åº”socketæè¿°å­—çš„å¼•ç”¨è®¡æ•°-1ï¼Œåªæœ‰å½“å¼•ç”¨è®¡æ•°ä¸º0çš„æ—¶å€™ï¼Œæ‰ä¼šè§¦å‘TCPå®¢æˆ·ç«¯å‘æœåŠ¡å™¨å‘é€ç»ˆæ­¢è¿æ¥è¯·æ±‚ï¼‰
 
-	/*ÖÁ´Ë£¬send_file_threadº¯ÊıÖ´ĞĞ½áÊø£¬½ÓÏÂÀ´ÔÚserver_send_fileº¯ÊıÖĞ£¬Ö´ĞĞÏÂÒ»¸öÏß³Ì·ÖÀëº¯Êısend_file_thread.detach()*/
+	/*è‡³æ­¤ï¼Œsend_file_threadå‡½æ•°æ‰§è¡Œç»“æŸï¼Œæ¥ä¸‹æ¥åœ¨server_send_fileå‡½æ•°ä¸­ï¼Œæ‰§è¡Œä¸‹ä¸€ä¸ªçº¿ç¨‹åˆ†ç¦»å‡½æ•°send_file_thread.detach()*/
 }

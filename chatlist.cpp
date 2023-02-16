@@ -2,34 +2,34 @@
 
 ChatInfo::ChatInfo()
 {
-	online_user = new list<User>; // ³õÊ¼»¯Á´±í
+	online_user = new list<User>; // åˆå§‹åŒ–é“¾è¡¨
 
 	group_info = new list<Group>;
 
-	//Íùgroup_infoÁ´±íÖĞÌí¼ÓÈºĞÅÏ¢
-	mydatabase = new ChatDataBase; // ´´½¨Ò»¸öÊı¾İ¿â¶ÔÏó
-	mydatabase->my_database_connect("chatgroup"); // Á¬½ÓÉÏchatgroupÈºÁÄÊı¾İ¿â
+	//å¾€group_infoé“¾è¡¨ä¸­æ·»åŠ ç¾¤ä¿¡æ¯
+	mydatabase = new ChatDataBase; // åˆ›å»ºä¸€ä¸ªæ•°æ®åº“å¯¹è±¡
+	mydatabase->my_database_connect("chatgroup"); // è¿æ¥ä¸Šchatgroupç¾¤èŠæ•°æ®åº“
 
 	string group_name[MAXNUM];
-	int group_num = mydatabase->my_database_get_group_name(group_name);// »ñÈ¡ÉÏÒ»²½Á¬½ÓÉÏµÄchatgroupÊı¾İ¿âÖĞµÄÈºÁÄµÄ¸öÊıgroup_numºÍÃ¿¸öÈºÁÄµÄÃû×ÖÊı×égroup_name
+	int group_num = mydatabase->my_database_get_group_name(group_name);// è·å–ä¸Šä¸€æ­¥è¿æ¥ä¸Šçš„chatgroupæ•°æ®åº“ä¸­çš„ç¾¤èŠçš„ä¸ªæ•°group_numå’Œæ¯ä¸ªç¾¤èŠçš„åå­—æ•°ç»„group_name
 
-	for (int i = 0; i < group_num; i++)//½«chatgroupÊı¾İ¿âÖĞËùÓĞÈºÁÄĞÅÏ¢²åÈëµ½ÈºĞÅÏ¢Á´±íÖĞ
+	for (int i = 0; i < group_num; i++)//å°†chatgroupæ•°æ®åº“ä¸­æ‰€æœ‰ç¾¤èŠä¿¡æ¯æ’å…¥åˆ°ç¾¤ä¿¡æ¯é“¾è¡¨ä¸­
 	{
-		Group g; //´´½¨Ò»¸öÈºÁÄ¶ÔÏó
+		Group g; //åˆ›å»ºä¸€ä¸ªç¾¤èŠå¯¹è±¡
 		g.name = group_name[i];
-		g.l = new list<GroupUser>;    //±£´æÈºÖĞËùÓĞÓÃ»§¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ªÁ´±íĞÎÊ½
+		g.l = new list<GroupUser>;    //ä¿å­˜ç¾¤ä¸­æ‰€æœ‰ç”¨æˆ·â€”â€”â€”â€”â€”â€”â€”â€”é“¾è¡¨å½¢å¼
 
 		group_info->push_back(g);
 
-		string member;              //±£´æÈºÀïËùÓĞÓÃ»§
-		mydatabase->my_database_get_group_member(group_name[i], member); // group_name[i]Ä³Ò»ÈºÁÄÃû×Ö£¬½«¸ÃÈºÁÄÖĞµÄÈº³ÉÔ±·Åµ½×Ö·û´®memberÖĞ
-		if (member.size() == 0)    //string member = Ğ¡Ã÷|Ğ¡Àî|Ğ¡ÕÅ
+		string member;              //ä¿å­˜ç¾¤é‡Œæ‰€æœ‰ç”¨æˆ·
+		mydatabase->my_database_get_group_member(group_name[i], member); // group_name[i]æŸä¸€ç¾¤èŠåå­—ï¼Œå°†è¯¥ç¾¤èŠä¸­çš„ç¾¤æˆå‘˜æ”¾åˆ°å­—ç¬¦ä¸²memberä¸­
+		if (member.size() == 0)    //string member = å°æ˜|å°æ|å°å¼ 
 		{
 			continue;
 		}
 
 		int start = 0, end = 0;
-		GroupUser u; // Èº³ÉÔ±Àà´´½¨Ò»¸öÈº³ÉÔ±¶ÔÏó£¨Ö»ÓĞÒ»¸öname£©
+		GroupUser u; // ç¾¤æˆå‘˜ç±»åˆ›å»ºä¸€ä¸ªç¾¤æˆå‘˜å¯¹è±¡ï¼ˆåªæœ‰ä¸€ä¸ªnameï¼‰
 		while (1)
 		{
 			end = member.find('|', start);
@@ -38,27 +38,27 @@ ChatInfo::ChatInfo()
 				break;
 			}
 			u.name = member.substr(start, end - start);
-			g.l->push_back(u);// ½«½ØÈ¡µ½µÄÄ³Ò»ÈºÁÄ³ÉÔ±²åÈëµ½ÈºÁÄ³ÉÔ±Á´±íÖĞ
+			g.l->push_back(u);// å°†æˆªå–åˆ°çš„æŸä¸€ç¾¤èŠæˆå‘˜æ’å…¥åˆ°ç¾¤èŠæˆå‘˜é“¾è¡¨ä¸­
 			start = end + 1;
 			u.name.clear();
 		}
-		u.name = member.substr(start, member.size() - start);//½«memberÖĞ×îºóÒ»¸öÈºÁÄ³ÉÔ±¡°Ğ¡ÕÅ¡±Ò²²åÈëµ½Á´±íÖĞ
+		u.name = member.substr(start, member.size() - start);//å°†memberä¸­æœ€åä¸€ä¸ªç¾¤èŠæˆå‘˜â€œå°å¼ â€ä¹Ÿæ’å…¥åˆ°é“¾è¡¨ä¸­
 		g.l->push_back(u);
 
 	}
 
 	/*for (list<Group>::iterator it = group_info->begin(); it != group_info->end(); it++)
 	{
-		cout << "ÈºÃû×Ö " << it->name << endl;
+		cout << "ç¾¤åå­— " << it->name << endl;
 		for (list<GroupUser>::iterator i = it->l->begin(); i != it->l->end(); i++)
 		{
 			cout << i->name << endl;
 		}
 	}*/
 
-	mydatabase->my_database_disconnect(); // Ê¹ÓÃÍêµ±Ç°Êı¾İ¿âºó¶Ï¿ªÁ¬½Ó£¬·½±ãÏÂÒ»´ÎÁ¬½Ó
+	mydatabase->my_database_disconnect(); // ä½¿ç”¨å®Œå½“å‰æ•°æ®åº“åæ–­å¼€è¿æ¥ï¼Œæ–¹ä¾¿ä¸‹ä¸€æ¬¡è¿æ¥
 
-	cout << "³õÊ¼»¯Á´±í³É¹¦" << endl;
+	cout << "åˆå§‹åŒ–é“¾è¡¨æˆåŠŸ" << endl;
 }
 
 bool ChatInfo::info_group_exist(string group_name)
@@ -73,14 +73,14 @@ bool ChatInfo::info_group_exist(string group_name)
 	return false;
 }
 
-// ÅĞ¶ÏÓÃ»§ÊÇ·ñÒÑ¾­ÔÚ¸ÃÈºÁÄÀï
+// åˆ¤æ–­ç”¨æˆ·æ˜¯å¦å·²ç»åœ¨è¯¥ç¾¤èŠé‡Œ
 bool ChatInfo::info_user_in_group(string group_name, string user_name)
 {
 	for (list<Group>::iterator it = group_info->begin(); it != group_info->end(); it++)
 	{
-		if (it->name == group_name) // ÕÒµ½¸ÃÈºÁÄ
+		if (it->name == group_name) // æ‰¾åˆ°è¯¥ç¾¤èŠ
 		{
-			// ±éÀú¸ÃÈºÁÄµÄÈº³ÉÔ±Á´±í£¬Óë¸ÃÓÃ»§ĞÕÃûÒ»Ò»±È¶Ô
+			// éå†è¯¥ç¾¤èŠçš„ç¾¤æˆå‘˜é“¾è¡¨ï¼Œä¸è¯¥ç”¨æˆ·å§“åä¸€ä¸€æ¯”å¯¹
 			for (list<GroupUser>::iterator i = it->l->begin(); i != it->l->end(); i++) 
 			{
 				if (i->name == user_name)
@@ -94,14 +94,14 @@ bool ChatInfo::info_user_in_group(string group_name, string user_name)
 	return false;
 }
 
-// ½«ÓÃ»§string2¼ÓÈëµ½¸ÃÈºÁÄ½ÚµãµÄÈº³ÉÔ±Á´±íÖĞ
+// å°†ç”¨æˆ·string2åŠ å…¥åˆ°è¯¥ç¾¤èŠèŠ‚ç‚¹çš„ç¾¤æˆå‘˜é“¾è¡¨ä¸­
 void ChatInfo::info_group_add_user(string group_name, string user_name)
 {
 	for (list<Group>::iterator it = group_info->begin(); it != group_info->end(); it++)
 	{
 		if (it->name == group_name)
 		{
-			GroupUser u; // ĞÂ½¨Ò»¸öÈº³ÉÔ±½Úµã
+			GroupUser u; // æ–°å»ºä¸€ä¸ªç¾¤æˆå‘˜èŠ‚ç‚¹
 			u.name = user_name;
 			it->l->push_back(u);
 		}
@@ -120,7 +120,7 @@ struct bufferevent* ChatInfo::info_get_friend_bev(string name)
 	return NULL;
 }
 
-// »ñÈ¡ÈºÁÄgroupµÄÈº³ÉÔ±£¬·µ»Ø¸østring1
+// è·å–ç¾¤èŠgroupçš„ç¾¤æˆå‘˜ï¼Œè¿”å›ç»™string1
 string ChatInfo::info_get_group_member(string group)
 {
 	string member;
@@ -138,15 +138,15 @@ string ChatInfo::info_get_group_member(string group)
 	return member;
 }
 
-// ½«ĞÂ½¨ÈºÁÄ£¨ÈºÃûÎªstring1£¬Èº³ÉÔ±Îªstring2£©¼ÓÈëµ½ÈºĞÅÏ¢Á´±íÖĞ
+// å°†æ–°å»ºç¾¤èŠï¼ˆç¾¤åä¸ºstring1ï¼Œç¾¤æˆå‘˜ä¸ºstring2ï¼‰åŠ å…¥åˆ°ç¾¤ä¿¡æ¯é“¾è¡¨ä¸­
 void ChatInfo::info_add_new_group(string group_name, string user_name)
 {
-	Group g; // ÈºÁÄÀà½Úµã
+	Group g; // ç¾¤èŠç±»èŠ‚ç‚¹
 	g.name = group_name;
-	g.l = new list<GroupUser>; // Èº³ÉÔ±Á´±í
-	group_info->push_back(g); // ½«¸ÃĞÂ½¨ÈºÁÄ½Úµã¼ÓÈëÈºĞÅÏ¢Á´±íÖĞ
+	g.l = new list<GroupUser>; // ç¾¤æˆå‘˜é“¾è¡¨
+	group_info->push_back(g); // å°†è¯¥æ–°å»ºç¾¤èŠèŠ‚ç‚¹åŠ å…¥ç¾¤ä¿¡æ¯é“¾è¡¨ä¸­
 
 	GroupUser u; 
 	u.name = user_name;
-	g.l->push_back(u); // ½«ÈºÖ÷¼Óµ½Èº³ÉÔ±Á´±íÖĞ
+	g.l->push_back(u); // å°†ç¾¤ä¸»åŠ åˆ°ç¾¤æˆå‘˜é“¾è¡¨ä¸­
 }

@@ -1,0 +1,1 @@
+g++   -std=c++11 -levent -lpthread -lmysqlclient -ljsoncpp -Wall -g  -rdynamic CMakeFiles/main.dir/main.cpp.o CMakeFiles/main.dir/chat_database.cpp.o CMakeFiles/main.dir/server.cpp.o CMakeFiles/main.dir/chatlist.cpp.o  -o main 

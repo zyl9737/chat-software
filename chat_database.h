@@ -12,25 +12,25 @@ using namespace std;
 class ChatDataBase
 {
 private:
-	MYSQL* mysql; // ´´½¨Ò»¸ö²Ù×÷mysqlÊı¾İ¿â¶ÔÏó£¬°üº¬Í·ÎÄ¼ş#include <mysql/mysql.h>
+	MYSQL* mysql; // åˆ›å»ºä¸€ä¸ªæ“ä½œmysqlæ•°æ®åº“å¯¹è±¡ï¼ŒåŒ…å«å¤´æ–‡ä»¶#include <mysql/mysql.h>
 public:
 	ChatDataBase();
 	~ChatDataBase();
 
-	void my_database_connect(const char* name);                    // Á¬½ÓÄ³¸öÊı¾İ¿â£¨Êı¾İ¿âÃû×Ö£©
-	int my_database_get_group_name(string*);                       // »ñÈ¡ÈºÁÄ¸öÊı£¬²¢°ÑÃû³Æ,·Åµ½²ÎÊıstringÖĞ
-	void my_database_get_group_member(string, string&);            // »ñÈ¡µÚÒ»¸ö²ÎÊıµÄÈºÁÄÃû³Æ£¬°ÑÈº³ÉÔ±·Åµ½µÚ¶ş¸ö²ÎÊıÖĞ
-	bool my_database_user_exist(string);						   // ¼ì²éÄ³ÓÃ»§ÊÇ·ñ´æÔÚÓÚuserÊı¾İ¿âÖĞ
-	void my_database_user_password(string, string);                // ÓÃ»§µÇÂ½Ê±ÑéÖ¤ÃÜÂë
-	bool my_database_password_correct(string, string);			   // ÅĞ¶ÏµÇÂ¼ÓÃ»§string1µÄÊäÈëÃÜÂëstring2ÊÇ·ñÕıÈ·£¬ÓëuserÊı¾İ¿âÖĞ¸ÃÓÃ»§±íÖĞµÄpassword±È¶Ô
-	bool my_database_is_friend(string, string);					   // ÅĞ¶ÏÓÃ»§2ÊÇ·ñÓÃ»§2µÄºÃÓÑ£¬Ìí¼ÓºÃÓÑ¹¦ÄÜÊ±ĞèÒªÌáÇ°ÅĞ¶ÏÒ»ÏÂ
-	void my_database_get_friend_group(string, string&, string&);   // //»ñÈ¡Ä³ÓÃ»§string1µÄºÃÓÑºÍÈºÁÄÁĞ±í£¬·Ö±ğ´æ´¢ÔÚstring2£¬string3ÖĞ£¬ÒıÓÃ·½Ê½´«µİ
-	void my_database_add_new_friend(string, string);			   // ½«ÓÃ»§2¼ÓÈëµ½ÓÃ»§1±íµÄfriendºÃÓÑ×Ö·û´®ÖĞ
-	bool my_database_group_exist(string);						   // ´´½¨¡¢Ìí¼ÓÈºÁÄÊ±£¬ÌáÇ°ÅĞ¶Ï¸ÃÈºÁÄÊÇ·ñ´æÔÚ
-	void my_database_add_new_group(string, string);				   // ÔÚ`chatgroup`ÖĞ´´½¨¸ÃÈºÁÄ£¬³õÊ¼»¯ÈºÁÄÃû£¬ÈºÖ÷£¬Èº³ÉÔ±ĞÅÏ¢
-	void my_database_user_add_group(string, string);			   // ÔÚ`user`ÖĞ£¬½«ÈºÁÄstring2¼ÓÈëµ½ÓÃ»§string1µÄÈºÁÄ×Ö·û´®ÖĞ
-	void my_database_group_add_user(string, string);			   // ÔÚ`chatgroup`Êı¾İ¿âÖĞ£¬½«ÓÃ»§string2¼ÓÈëµ½ÈºÁÄstring1µÄÈº³ÉÔ±×Ö·û´®ÖĞ
-	void my_database_disconnect();								   // ¶Ï¿ªµ±Ç°Á¬½ÓµÄÊı¾İ¿â
+	void my_database_connect(const char* name);                    // è¿æ¥æŸä¸ªæ•°æ®åº“ï¼ˆæ•°æ®åº“åå­—ï¼‰
+	int my_database_get_group_name(string*);                       // è·å–ç¾¤èŠä¸ªæ•°ï¼Œå¹¶æŠŠåç§°,æ”¾åˆ°å‚æ•°stringä¸­
+	void my_database_get_group_member(string, string&);            // è·å–ç¬¬ä¸€ä¸ªå‚æ•°çš„ç¾¤èŠåç§°ï¼ŒæŠŠç¾¤æˆå‘˜æ”¾åˆ°ç¬¬äºŒä¸ªå‚æ•°ä¸­
+	bool my_database_user_exist(string);						   // æ£€æŸ¥æŸç”¨æˆ·æ˜¯å¦å­˜åœ¨äºuseræ•°æ®åº“ä¸­
+	void my_database_user_password(string, string);                // ç”¨æˆ·ç™»é™†æ—¶éªŒè¯å¯†ç 
+	bool my_database_password_correct(string, string);			   // åˆ¤æ–­ç™»å½•ç”¨æˆ·string1çš„è¾“å…¥å¯†ç string2æ˜¯å¦æ­£ç¡®ï¼Œä¸useræ•°æ®åº“ä¸­è¯¥ç”¨æˆ·è¡¨ä¸­çš„passwordæ¯”å¯¹
+	bool my_database_is_friend(string, string);					   // åˆ¤æ–­ç”¨æˆ·2æ˜¯å¦ç”¨æˆ·2çš„å¥½å‹ï¼Œæ·»åŠ å¥½å‹åŠŸèƒ½æ—¶éœ€è¦æå‰åˆ¤æ–­ä¸€ä¸‹
+	void my_database_get_friend_group(string, string&, string&);   // //è·å–æŸç”¨æˆ·string1çš„å¥½å‹å’Œç¾¤èŠåˆ—è¡¨ï¼Œåˆ†åˆ«å­˜å‚¨åœ¨string2ï¼Œstring3ä¸­ï¼Œå¼•ç”¨æ–¹å¼ä¼ é€’
+	void my_database_add_new_friend(string, string);			   // å°†ç”¨æˆ·2åŠ å…¥åˆ°ç”¨æˆ·1è¡¨çš„friendå¥½å‹å­—ç¬¦ä¸²ä¸­
+	bool my_database_group_exist(string);						   // åˆ›å»ºã€æ·»åŠ ç¾¤èŠæ—¶ï¼Œæå‰åˆ¤æ–­è¯¥ç¾¤èŠæ˜¯å¦å­˜åœ¨
+	void my_database_add_new_group(string, string);				   // åœ¨`chatgroup`ä¸­åˆ›å»ºè¯¥ç¾¤èŠï¼Œåˆå§‹åŒ–ç¾¤èŠåï¼Œç¾¤ä¸»ï¼Œç¾¤æˆå‘˜ä¿¡æ¯
+	void my_database_user_add_group(string, string);			   // åœ¨`user`ä¸­ï¼Œå°†ç¾¤èŠstring2åŠ å…¥åˆ°ç”¨æˆ·string1çš„ç¾¤èŠå­—ç¬¦ä¸²ä¸­
+	void my_database_group_add_user(string, string);			   // åœ¨`chatgroup`æ•°æ®åº“ä¸­ï¼Œå°†ç”¨æˆ·string2åŠ å…¥åˆ°ç¾¤èŠstring1çš„ç¾¤æˆå‘˜å­—ç¬¦ä¸²ä¸­
+	void my_database_disconnect();								   // æ–­å¼€å½“å‰è¿æ¥çš„æ•°æ®åº“
 };
 
 #endif
